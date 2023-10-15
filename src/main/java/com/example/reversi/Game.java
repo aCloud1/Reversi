@@ -11,7 +11,9 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Pair;
 
+import java.util.ArrayList;
 import java.util.Random;
+import java.util.Vector;
 
 public class Game extends Application {
     public final int WIDTH = 400;
@@ -32,8 +34,8 @@ public class Game extends Application {
             { 0, 0, 0, 0, 0, 0, 0, 0 },
             { 0, 0, 0, 0, 0, 0, 0, 0 },
             { 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 1, 2, 0, 0, 0 },
+            { 0, 0, 0, 2, 1, 0, 0, 0 },
             { 0, 0, 0, 0, 0, 0, 0, 0 },
             { 0, 0, 0, 0, 0, 0, 0, 0 },
             { 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -59,12 +61,45 @@ public class Game extends Application {
         scene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
-                Pair<Integer, Integer> block = getArrayIndicesFromCoordinates((int)event.getX(), (int)event.getY());
-                if(board[block.getValue()][block.getKey()] != Cell.EMPTY.getValue())
+                Pair<Integer, Integer> selected_cell = getArrayIndicesFromCoordinates((int)event.getX(), (int)event.getY());
+                int selected_x = selected_cell.getKey();
+                int selected_y = selected_cell.getValue();
+                System.out.printf("clicked on: [%d, %d]%n", selected_y, selected_x);
+                if(board[selected_y][selected_x] != Cell.EMPTY.getValue())
                     return;
 
-                if(player1_turn)    board[block.getValue()][block.getKey()] = Cell.PLAYER1.getValue();
-                else                board[block.getValue()][block.getKey()] = Cell.PLAYER2.getValue();
+                Vector<Pair<Integer, Integer>> enemy_cells;
+                if(player1_turn)
+                {
+                    if(!isAdjacentToOpponent(Cell.PLAYER2.getValue(), selected_x, selected_y))
+                        return;
+
+//                    enemy_cells = getCellsSurroundingOpponent(Cell.PLAYER1.getValue(), Cell.PLAYER2.getValue(), selected_cell.getValue(), selected_cell.getKey());
+//                    if(enemy_cells.isEmpty()) {
+//                        System.out.println("EMPTY");
+//                        return;
+//                    }
+//                    System.out.println(enemy_cells);
+                    // changing opponents disks to your own
+                    // ...
+
+                    board[selected_y][selected_x] = Cell.PLAYER1.getValue();
+                }
+                else
+                {
+                    if(!isAdjacentToOpponent(Cell.PLAYER1.getValue(), selected_x, selected_y))
+                        return;
+
+//                    enemy_cells = getCellsSurroundingOpponent(Cell.PLAYER2.getValue(), Cell.PLAYER1.getValue(), selected_cell.getValue(), selected_x);
+//                    if(enemy_cells.isEmpty())
+//                        return;
+
+                    // changing opponents disks to your own
+                    // ...
+
+                    board[selected_y][selected_x] = Cell.PLAYER2.getValue();
+                }
+
                 player1_turn = !player1_turn;
                 drawBoard();
             }
@@ -97,6 +132,18 @@ public class Game extends Application {
                 else                gc.setFill(Color.DARKGRAY);
                 gc.fillRect(i * CELL_WIDTH, j * CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT);
 
+                // draw ghosts
+                if(player1_turn) {
+                    if(isAdjacentToOpponent(Cell.PLAYER2.value, i, j))
+//                        if(!(getCellsSurroundingOpponent(Cell.PLAYER1.getValue(), Cell.PLAYER2.getValue(), j, i).isEmpty()))
+                            gc.setFill(new Color(1.0f, 0.0f, 0.0f, 0.15f));
+                }
+                else {
+                    if(isAdjacentToOpponent(Cell.PLAYER1.value, i, j))
+//                        if(!(getCellsSurroundingOpponent(Cell.PLAYER2.getValue(), Cell.PLAYER1.getValue(), j, i).isEmpty()))
+                            gc.setFill(new Color(0.0f, 0.0f, 1.0f, 0.15f));
+                }
+
                 // draw disks
                 if(board[j][i] == Cell.PLAYER1.getValue()) {
                     gc.setFill(Color.RED);
@@ -109,19 +156,84 @@ public class Game extends Application {
         }
     }
 
-    public void computerOpponentMove() {
-        Pair<Integer, Integer> temp;
-        do {
-            temp = new Pair<>(random.nextInt(0, 8), random.nextInt(0, 8));
-        } while(board[temp.getValue()][temp.getKey()] != Cell.EMPTY.getValue());
-        board[temp.getValue()][temp.getKey()] = Cell.PLAYER2.getValue();
+    public boolean isAdjacentToOpponent(int opponent, int x, int y) {
+        boolean is_adjacent = false;
+        // up left
+        if(y - 1 >= 0 && x - 1 >= 0 && board[y - 1][x - 1] == opponent)
+            is_adjacent = true;
 
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            System.out.println(e.getMessage());
-        }
+        // up
+        if(y - 1 >= 0 && board[y - 1][x] == opponent)
+            is_adjacent = true;
+
+        // up right
+        if(y - 1 >= 0 && x + 1 < COL_COUNT && board[y - 1][x + 1] == opponent)
+            is_adjacent = true;
+
+        // right
+        if(x + 1 < COL_COUNT && board[y][x + 1] == opponent)
+            is_adjacent = true;
+
+        // right down
+        if(y + 1 < ROW_COUNT && x + 1 < COL_COUNT && board[y + 1][x + 1] == opponent)
+            is_adjacent = true;
+
+        // down
+        if(y + 1 < ROW_COUNT && board[y + 1][x] == opponent)
+            is_adjacent = true;
+
+        // down left
+        if(y + 1 < ROW_COUNT && x - 1 >= 0 && board[y + 1][x - 1] == opponent)
+            is_adjacent = true;
+
+        // left
+        if(x - 1 >= 0 && board[y][x - 1] == opponent)
+            is_adjacent = true;
+
+        return is_adjacent;
     }
+
+//    public Vector<Pair<Integer, Integer>> getCellsSurroundingOpponent(int self, int opponent, int x, int y) {
+//        Vector<Pair<Integer, Integer>> cells = new Vector<>();
+//        Vector<Pair<Integer, Integer>> temp = new Vector<>();
+//
+//        // left
+//        for(int i = x; i >= 0; i--)
+//        {
+//            if(board[y][i] == opponent)
+//            {
+//                temp.add(new Pair<>(y, i));
+//                System.out.println(y + " " + i);
+//            }
+//            else
+//            {
+//                if(board[y][i] == self)
+//                    cells.addAll(temp);
+//                break;
+//            }
+//        }
+//        System.out.println("TO THE LEFT IS: " + cells.size());
+//        temp.clear();
+///*
+//        // right
+//        for(int i = x; i < COL_COUNT; i++) {
+//            if(board[y][i] == opponent) {
+////                System.out.println(y + " " + i + " = " + opponent);
+//            }
+//        }
+//
+//        // up
+//        for(int i = y; i >= 0; i--) {
+//            if(board[i][x] == opponent)
+//        }
+//
+//        // down
+//        for(int i = y; i < ROW_COUNT; i++) {
+//            if(board[i][x] == opponent)
+//        }
+//*/
+//        return cells;
+//    }
 
     public Pair<Integer, Integer> getArrayIndicesFromCoordinates(int x, int y) {
         return new Pair<>(x / CELL_WIDTH, y / CELL_HEIGHT);
