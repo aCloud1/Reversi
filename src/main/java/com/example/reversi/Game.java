@@ -75,13 +75,12 @@ public class Game extends Application {
                     if(!isAdjacentToOpponent(Cell.PLAYER2.getValue(), selected_x, selected_y))
                         return;
 
-//                    enemy_cells = getCellsSurroundingOpponent(Cell.PLAYER1.getValue(), Cell.PLAYER2.getValue(), selected_x, selected_y);
-//                    if(enemy_cells.isEmpty()) {
-//                        System.out.println("EMPTY");
-//                        return;
-//                    }
-//                    System.out.println(enemy_cells);
-                    // changing opponents disks to your own
+                    enemy_cells = getCellsSurroundingOpponent(Cell.PLAYER1.getValue(), Cell.PLAYER2.getValue(), selected_x, selected_y);
+                    if(enemy_cells.isEmpty()) {
+                        System.out.println("EMPTY");
+                        return;
+                    }
+                    // change opponents disks to your own
                     // ...
 
                     board[selected_y][selected_x] = Cell.PLAYER1.getValue();
@@ -103,6 +102,7 @@ public class Game extends Application {
 
                 player1_turn = !player1_turn;
                 drawBoard();
+                System.out.println();
             }
         });
     }
@@ -136,12 +136,12 @@ public class Game extends Application {
                 // draw ghosts
                 if(player1_turn) {
                     if(isAdjacentToOpponent(Cell.PLAYER2.value, x, y))
-//                        if(!(getCellsSurroundingOpponent(Cell.PLAYER1.getValue(), Cell.PLAYER2.getValue(), y, x).isEmpty()))
+                        if(!(getCellsSurroundingOpponent(Cell.PLAYER1.getValue(), Cell.PLAYER2.getValue(), x, y).isEmpty()))
                             gc.setFill(new Color(1.0f, 0.0f, 0.0f, 0.15f));
                 }
                 else {
                     if(isAdjacentToOpponent(Cell.PLAYER1.value, x, y))
-//                        if(!(getCellsSurroundingOpponent(Cell.PLAYER2.getValue(), Cell.PLAYER1.getValue(), y, x).isEmpty()))
+//                        if(!(getCellsSurroundingOpponent(Cell.PLAYER2.getValue(), Cell.PLAYER1.getValue(), x, y).isEmpty()))
                             gc.setFill(new Color(0.0f, 0.0f, 1.0f, 0.15f));
                 }
 
@@ -199,17 +199,25 @@ public class Game extends Application {
         Vector<Pair<Integer, Integer>> temp = new Vector<>();
 
         // left
-        for(int i = x; i >= 0; i--)
+        for(int i = x - 1; i >= 0; i--)
         {
-            if(board[y][i] == opponent)
+            System.out.println("checking [" + i + " " + y + "]");
+            if(board[y][i] == Cell.PLAYER2.getValue())
             {
-                temp.add(new Pair<>(y, i));
-                System.out.println(i + " " + y);
+                temp.add(new Pair<>(i, y));
+                System.out.println("\tEnemy! Adding to temp " + temp);
             }
-            else
-            {
-                if(board[y][i] == self)
+            else if(board[y][i] == Cell.PLAYER1.getValue()) {
+                if(!temp.isEmpty()) {
+                    System.out.println("\tSelf! Adding to enemy_cells " + temp);
                     cells.addAll(temp);
+                }
+                else
+                    System.out.println("\tNo enemy cells encountered. Try something else." + temp);
+                break;
+            }
+            else {
+                System.out.println("\tEmpty cell. Invalid move. Try something else.");
                 break;
             }
         }
