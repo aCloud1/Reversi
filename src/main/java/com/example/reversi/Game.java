@@ -30,16 +30,8 @@ public class Game extends Application {
     Random random;
 
     boolean player1_turn = true;
-    int[][] board = {
-            { 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 1, 1, 1, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 2, 0, 0, 0 },
-            { 0, 0, 0, 1, 1, 1, 0, 0 },
-            { 0, 0, 0, 0, 2, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 1, 2, 0, 0, 0, 0, 0, 0 },
-    };
+
+    Board board;
 
 
     @Override
@@ -55,7 +47,7 @@ public class Game extends Application {
         stage.setScene(scene);
         stage.show();
 
-
+        board = new Board();
         drawBoard();
 
         scene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
@@ -66,7 +58,7 @@ public class Game extends Application {
                 int selected_x = selected_cell.getKey();
                 int selected_y = selected_cell.getValue();
                 System.out.printf("\tcell: [x=%d, y=%d]%n", selected_x, selected_y);
-                if(board[selected_y][selected_x] != Cell.EMPTY.getValue())
+                if(board.getCell(selected_x, selected_y) != Cell.EMPTY.getValue())
                     return;
 
                 Vector<Pair<Integer, Integer>> enemy_cells;
@@ -83,9 +75,9 @@ public class Game extends Application {
 
                     // change opponents disks to your own
                     for(Pair<Integer, Integer> p : enemy_cells)
-                        board[p.getValue()][p.getKey()] = Cell.PLAYER1.getValue();
+                        board.setCell(p.getKey(), p.getValue(), Cell.PLAYER1.getValue());
 
-                    board[selected_y][selected_x] = Cell.PLAYER1.getValue();
+                    board.setCell(selected_x, selected_y, Cell.PLAYER1.getValue());
                 }
                 else
                 {
@@ -99,8 +91,9 @@ public class Game extends Application {
                     }
 
                     for(Pair<Integer, Integer> p : enemy_cells)
-                        board[p.getValue()][p.getKey()] = Cell.PLAYER2.getValue();
-                    board[selected_y][selected_x] = Cell.PLAYER2.getValue();
+                        board.setCell(p.getKey(), p.getValue(), Cell.PLAYER2.getValue());
+
+                    board.setCell(selected_x, selected_y, Cell.PLAYER2.getValue());
                 }
 
                 player1_turn = !player1_turn;
@@ -149,10 +142,10 @@ public class Game extends Application {
                 }
 
                 // draw disks
-                if(board[y][x] == Cell.PLAYER1.getValue()) {
+                if(board.getCell(x, y) == Cell.PLAYER1.getValue()) {
                     gc.setFill(Color.RED);
                 }
-                else if(board[y][x] == Cell.PLAYER2.getValue()) {
+                else if(board.getCell(x, y) == Cell.PLAYER2.getValue()) {
                     gc.setFill(Color.BLUE);
                 }
                 gc.fillOval(x * CELL_WIDTH, y * CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT);
@@ -163,35 +156,35 @@ public class Game extends Application {
     public boolean isAdjacentToOpponent(int opponent, int x, int y) {
         boolean is_adjacent = false;
         // up left
-        if(y - 1 >= 0 && x - 1 >= 0 && board[y - 1][x - 1] == opponent)
+        if(y - 1 >= 0 && x - 1 >= 0 && board.getCell(x - 1, y - 1) == opponent)
             is_adjacent = true;
 
         // up
-        if(y - 1 >= 0 && board[y - 1][x] == opponent)
+        if(y - 1 >= 0 && board.getCell(x, y - 1) == opponent)
             is_adjacent = true;
 
         // up right
-        if(y - 1 >= 0 && x + 1 < COL_COUNT && board[y - 1][x + 1] == opponent)
+        if(y - 1 >= 0 && x + 1 < COL_COUNT && board.getCell(x + 1, y - 1) == opponent)
             is_adjacent = true;
 
         // right
-        if(x + 1 < COL_COUNT && board[y][x + 1] == opponent)
+        if(x + 1 < COL_COUNT && board.getCell(x + 1, y) == opponent)
             is_adjacent = true;
 
         // right down
-        if(y + 1 < ROW_COUNT && x + 1 < COL_COUNT && board[y + 1][x + 1] == opponent)
+        if(y + 1 < ROW_COUNT && x + 1 < COL_COUNT && board.getCell(x + 1, y + 1) == opponent)
             is_adjacent = true;
 
         // down
-        if(y + 1 < ROW_COUNT && board[y + 1][x] == opponent)
+        if(y + 1 < ROW_COUNT && board.getCell(x, y + 1) == opponent)
             is_adjacent = true;
 
         // down left
-        if(y + 1 < ROW_COUNT && x - 1 >= 0 && board[y + 1][x - 1] == opponent)
+        if(y + 1 < ROW_COUNT && x - 1 >= 0 && board.getCell(x - 1, y + 1) == opponent)
             is_adjacent = true;
 
         // left
-        if(x - 1 >= 0 && board[y][x - 1] == opponent)
+        if(x - 1 >= 0 && board.getCell(x - 1, y) == opponent)
             is_adjacent = true;
 
         return is_adjacent;
@@ -205,7 +198,7 @@ public class Game extends Application {
         boolean encountered_self = false;
         boolean encountered_opponent = false;
         for(int i = 0; i < COL_COUNT; i++) {
-            if(board[y][i] == self && i != x) {
+            if(board.getCell(i, y) == self && i != x) {
                 encountered_self = true;
                 if(encountered_opponent) {
                     encountered_opponent = false;
@@ -217,7 +210,7 @@ public class Game extends Application {
                     temp.clear();
                 }
             }
-            else if(board[y][i] == opponent) {
+            else if(board.getCell(i, y) == opponent) {
                 encountered_opponent = true;
                 if(encountered_self)
                     temp.add(new Pair<>(i, y));
@@ -231,7 +224,7 @@ public class Game extends Application {
 
         temp.clear();
         for(int i = 0; i < ROW_COUNT; i++) {
-            if(board[i][x] == self && i != y) {
+            if(board.getCell(x, i) == self && i != y) {
                 encountered_self = true;
                 if(encountered_opponent) {
                     encountered_opponent = false;
@@ -243,7 +236,7 @@ public class Game extends Application {
                     cells.addAll(temp);
                     temp.clear();
                 }
-            } else if (board[i][x] == opponent) {
+            } else if (board.getCell(x, i) == opponent) {
                 encountered_opponent = true;
                 if (encountered_self)
                     temp.add(new Pair<>(x, i));
