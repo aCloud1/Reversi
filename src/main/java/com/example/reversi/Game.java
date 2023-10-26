@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.Vector;
 
+import static com.example.reversi.Util.getArrayIndicesFromCoordinates;
+
 public class Game extends Application {
     public final int WIDTH = 400;
     public final int HEIGHT = 400;
@@ -54,7 +56,7 @@ public class Game extends Application {
             @Override
             public void handle(MouseEvent event) {
                 System.out.printf("coord: x=%d, y=%d", (int)event.getX(), (int)event.getY());
-                Pair<Integer, Integer> selected_cell = getArrayIndicesFromCoordinates((int)event.getX(), (int)event.getY());
+                Pair<Integer, Integer> selected_cell = Util.getArrayIndicesFromCoordinates((int)event.getX(), (int)event.getY(), CELL_WIDTH, CELL_HEIGHT);
                 int selected_x = selected_cell.getKey();
                 int selected_y = selected_cell.getValue();
                 System.out.printf("\tcell: [x=%d, y=%d]%n", selected_x, selected_y);
@@ -250,9 +252,7 @@ public class Game extends Application {
         return cells;
     }
 
-    public Pair<Integer, Integer> getArrayIndicesFromCoordinates(int x, int y) {
-        return new Pair<>(x / CELL_WIDTH, y / CELL_HEIGHT);
-    }
+
 
     public static void main(String[] args) {
         launch();

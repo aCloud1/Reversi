@@ -22,5 +22,10 @@ public class Board {
     public int getCell(int x, int y) { return board[y][x]; }
     public void setCell(int x, int y, int value) { board[y][x] = value; }
 
-    
+//    public bool isAdjacentToOpponent() {
+//    }
+//
+//    public getCellsSurroundingOpponent() {
+//
+//    }
 }
