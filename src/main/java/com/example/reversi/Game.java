@@ -32,13 +32,13 @@ public class Game extends Application {
     boolean player1_turn = true;
     int[][] board = {
             { 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 1, 1, 1, 0, 0, 0 },
             { 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 2, 0, 0, 0 },
+            { 0, 0, 0, 1, 1, 1, 0, 0 },
+            { 0, 0, 0, 0, 2, 0, 0, 0 },
             { 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 1, 2, 0, 0, 0 },
-            { 0, 0, 0, 2, 1, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 1, 2, 0, 0, 0, 0, 0, 0 },
     };
 
 
@@ -139,12 +139,12 @@ public class Game extends Application {
                 // draw ghosts
                 if(player1_turn) {
                     if(isAdjacentToOpponent(Cell.PLAYER2.value, x, y))
-//                        if(!(getCellsSurroundingOpponent(Cell.PLAYER1.getValue(), Cell.PLAYER2.getValue(), x, y).isEmpty()))
+                        if(!(getCellsSurroundingOpponent(Cell.PLAYER1.getValue(), Cell.PLAYER2.getValue(), x, y).isEmpty()))
                             gc.setFill(new Color(1.0f, 0.0f, 0.0f, 0.15f));
                 }
                 else {
                     if(isAdjacentToOpponent(Cell.PLAYER1.value, x, y))
-//                        if(!(getCellsSurroundingOpponent(Cell.PLAYER2.getValue(), Cell.PLAYER1.getValue(), x, y).isEmpty()))
+                        if(!(getCellsSurroundingOpponent(Cell.PLAYER2.getValue(), Cell.PLAYER1.getValue(), x, y).isEmpty()))
                             gc.setFill(new Color(0.0f, 0.0f, 1.0f, 0.15f));
                 }
 
@@ -205,10 +205,14 @@ public class Game extends Application {
         boolean encountered_self = false;
         boolean encountered_opponent = false;
         for(int i = 0; i < COL_COUNT; i++) {
-            if(board[y][i] == self || i == x) {
+            if(board[y][i] == self && i != x) {
                 encountered_self = true;
                 if(encountered_opponent) {
                     encountered_opponent = false;
+                }
+            }
+            else if(i == x) {
+                if(encountered_opponent) {
                     cells.addAll(temp);
                     temp.clear();
                 }
@@ -224,6 +228,32 @@ public class Game extends Application {
                 temp.clear();
             }
         }
+
+        temp.clear();
+        for(int i = 0; i < ROW_COUNT; i++) {
+            if(board[i][x] == self && i != y) {
+                encountered_self = true;
+                if(encountered_opponent) {
+                    encountered_opponent = false;
+                    cells.addAll(temp);
+                    temp.clear();
+                }
+            } else if (i == y) {
+                if(encountered_opponent) {
+                    cells.addAll(temp);
+                    temp.clear();
+                }
+            } else if (board[i][x] == opponent) {
+                encountered_opponent = true;
+                if (encountered_self)
+                    temp.add(new Pair<>(x, i));
+            } else {
+                encountered_self = false;
+                encountered_opponent = false;
+                temp.clear();
+            }
+        }
+
         return cells;
     }
 
