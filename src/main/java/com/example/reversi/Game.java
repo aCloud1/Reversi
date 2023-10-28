@@ -49,12 +49,18 @@ public class Game extends Application {
         stage.setScene(scene);
         stage.show();
 
-        board = new Board();
+        board = new Board(ROW_COUNT, COL_COUNT);
         drawBoard();
 
+//        Player playerRED = new Player(Cell.PLAYER1.getValue(), board);
+//        Player playerBLUE = new Player(Cell.PLAYER2.getValue(), board);
+
+
+        // this method is input handling. todo: extract other methods from it
         scene.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
+                // input logic
                 System.out.printf("coord: x=%d, y=%d", (int)event.getX(), (int)event.getY());
                 Pair<Integer, Integer> selected_cell = Util.getArrayIndicesFromCoordinates((int)event.getX(), (int)event.getY(), CELL_WIDTH, CELL_HEIGHT);
                 int selected_x = selected_cell.getKey();
@@ -63,47 +69,63 @@ public class Game extends Application {
                 if(board.getCell(selected_x, selected_y) != Cell.EMPTY.getValue())
                     return;
 
-                Vector<Pair<Integer, Integer>> enemy_cells;
+                // game logic
                 if(player1_turn)
-                {
-                    if(!isAdjacentToOpponent(Cell.PLAYER2.getValue(), selected_x, selected_y))
-                        return;
-
-                    enemy_cells = getCellsSurroundingOpponent(Cell.PLAYER1.getValue(), Cell.PLAYER2.getValue(), selected_x, selected_y);
-                    if(enemy_cells.isEmpty()) {
-                        System.out.println("EMPTY");
-                        return;
-                    }
-
-                    // change opponents disks to your own
-                    for(Pair<Integer, Integer> p : enemy_cells)
-                        board.setCell(p.getKey(), p.getValue(), Cell.PLAYER1.getValue());
-
-                    board.setCell(selected_x, selected_y, Cell.PLAYER1.getValue());
-                }
+                    // player class logic
+                    handlePlayer1Turn(selected_x, selected_y);  // playerRED.handle();
                 else
-                {
-                    if(!isAdjacentToOpponent(Cell.PLAYER1.getValue(), selected_x, selected_y))
-                        return;
+                    handlePlayer2Turn(selected_x, selected_y);
 
-                    enemy_cells = getCellsSurroundingOpponent(Cell.PLAYER2.getValue(), Cell.PLAYER1.getValue(), selected_x, selected_y);
-                    if(enemy_cells.isEmpty()) {
-                        System.out.println("EMPTY");
-                        return;
-                    }
-
-                    for(Pair<Integer, Integer> p : enemy_cells)
-                        board.setCell(p.getKey(), p.getValue(), Cell.PLAYER2.getValue());
-
-                    board.setCell(selected_x, selected_y, Cell.PLAYER2.getValue());
-                }
-
-                player1_turn = !player1_turn;
+                // renderer logic
                 drawBoard();
                 System.out.println();
             }
         });
     }
+
+    public void handlePlayer1Turn(int x, int y) {
+        Vector<Pair<Integer, Integer>> enemy_cells;
+
+        if(!board.isAdjacentToOpponent(Cell.PLAYER2.getValue(), x, y))
+            return;
+
+        enemy_cells = board.getCellsSurroundingOpponent(Cell.PLAYER1.getValue(), Cell.PLAYER2.getValue(), x, y);
+        if(enemy_cells.isEmpty()) {
+            System.out.println("EMPTY");
+            return;
+        }
+
+        // change opponents disks to your own
+        for(Pair<Integer, Integer> p : enemy_cells)
+            board.setCell(p.getKey(), p.getValue(), Cell.PLAYER1.getValue());
+
+        board.setCell(x, y, Cell.PLAYER1.getValue());
+
+        // its next players turn only after these previous checks
+        // game logic
+        player1_turn = !player1_turn;
+    }
+
+    public void handlePlayer2Turn(int x, int y) {
+        Vector<Pair<Integer, Integer>> enemy_cells;
+        if(!board.isAdjacentToOpponent(Cell.PLAYER1.getValue(), x, y))
+            return;
+
+        enemy_cells = board.getCellsSurroundingOpponent(Cell.PLAYER2.getValue(), Cell.PLAYER1.getValue(), x, y);
+        if(enemy_cells.isEmpty()) {
+            System.out.println("EMPTY");
+            return;
+        }
+
+        for(Pair<Integer, Integer> p : enemy_cells)
+            board.setCell(p.getKey(), p.getValue(), Cell.PLAYER2.getValue());
+
+        board.setCell(x, y, Cell.PLAYER2.getValue());
+
+        // game logic
+        player1_turn = !player1_turn;
+    }
+
 
     public enum Cell {
         EMPTY(0),
@@ -133,13 +155,13 @@ public class Game extends Application {
 
                 // draw ghosts
                 if(player1_turn) {
-                    if(isAdjacentToOpponent(Cell.PLAYER2.value, x, y))
-                        if(!(getCellsSurroundingOpponent(Cell.PLAYER1.getValue(), Cell.PLAYER2.getValue(), x, y).isEmpty()))
+                    if(board.isAdjacentToOpponent(Cell.PLAYER2.value, x, y))
+                        if(!(board.getCellsSurroundingOpponent(Cell.PLAYER1.getValue(), Cell.PLAYER2.getValue(), x, y).isEmpty()))
                             gc.setFill(new Color(1.0f, 0.0f, 0.0f, 0.15f));
                 }
                 else {
-                    if(isAdjacentToOpponent(Cell.PLAYER1.value, x, y))
-                        if(!(getCellsSurroundingOpponent(Cell.PLAYER2.getValue(), Cell.PLAYER1.getValue(), x, y).isEmpty()))
+                    if(board.isAdjacentToOpponent(Cell.PLAYER1.value, x, y))
+                        if(!(board.getCellsSurroundingOpponent(Cell.PLAYER2.getValue(), Cell.PLAYER1.getValue(), x, y).isEmpty()))
                             gc.setFill(new Color(0.0f, 0.0f, 1.0f, 0.15f));
                 }
 
@@ -154,105 +176,6 @@ public class Game extends Application {
             }
         }
     }
-
-    public boolean isAdjacentToOpponent(int opponent, int x, int y) {
-        boolean is_adjacent = false;
-        // up left
-        if(y - 1 >= 0 && x - 1 >= 0 && board.getCell(x - 1, y - 1) == opponent)
-            is_adjacent = true;
-
-        // up
-        if(y - 1 >= 0 && board.getCell(x, y - 1) == opponent)
-            is_adjacent = true;
-
-        // up right
-        if(y - 1 >= 0 && x + 1 < COL_COUNT && board.getCell(x + 1, y - 1) == opponent)
-            is_adjacent = true;
-
-        // right
-        if(x + 1 < COL_COUNT && board.getCell(x + 1, y) == opponent)
-            is_adjacent = true;
-
-        // right down
-        if(y + 1 < ROW_COUNT && x + 1 < COL_COUNT && board.getCell(x + 1, y + 1) == opponent)
-            is_adjacent = true;
-
-        // down
-        if(y + 1 < ROW_COUNT && board.getCell(x, y + 1) == opponent)
-            is_adjacent = true;
-
-        // down left
-        if(y + 1 < ROW_COUNT && x - 1 >= 0 && board.getCell(x - 1, y + 1) == opponent)
-            is_adjacent = true;
-
-        // left
-        if(x - 1 >= 0 && board.getCell(x - 1, y) == opponent)
-            is_adjacent = true;
-
-        return is_adjacent;
-    }
-
-    public Vector<Pair<Integer, Integer>> getCellsSurroundingOpponent(int self, int opponent, int x, int y) {
-        Vector<Pair<Integer, Integer>> cells = new Vector<>();
-        Vector<Pair<Integer, Integer>> temp = new Vector<>();
-
-        // horizontal
-        boolean encountered_self = false;
-        boolean encountered_opponent = false;
-        for(int i = 0; i < COL_COUNT; i++) {
-            if(board.getCell(i, y) == self && i != x) {
-                encountered_self = true;
-                if(encountered_opponent) {
-                    encountered_opponent = false;
-                }
-            }
-            else if(i == x) {
-                if(encountered_opponent) {
-                    cells.addAll(temp);
-                    temp.clear();
-                }
-            }
-            else if(board.getCell(i, y) == opponent) {
-                encountered_opponent = true;
-                if(encountered_self)
-                    temp.add(new Pair<>(i, y));
-            }
-            else {
-                encountered_self = false;
-                encountered_opponent = false;
-                temp.clear();
-            }
-        }
-
-        temp.clear();
-        for(int i = 0; i < ROW_COUNT; i++) {
-            if(board.getCell(x, i) == self && i != y) {
-                encountered_self = true;
-                if(encountered_opponent) {
-                    encountered_opponent = false;
-                    cells.addAll(temp);
-                    temp.clear();
-                }
-            } else if (i == y) {
-                if(encountered_opponent) {
-                    cells.addAll(temp);
-                    temp.clear();
-                }
-            } else if (board.getCell(x, i) == opponent) {
-                encountered_opponent = true;
-                if (encountered_self)
-                    temp.add(new Pair<>(x, i));
-            } else {
-                encountered_self = false;
-                encountered_opponent = false;
-                temp.clear();
-            }
-        }
-
-        return cells;
-    }
-
-
 
     public static void main(String[] args) {
         launch();
