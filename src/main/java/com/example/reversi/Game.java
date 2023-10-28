@@ -11,11 +11,8 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Pair;
 
-import java.util.ArrayList;
 import java.util.Random;
 import java.util.Vector;
-
-import static com.example.reversi.Util.getArrayIndicesFromCoordinates;
 
 public class Game extends Application {
     public final int WIDTH = 400;
@@ -27,33 +24,54 @@ public class Game extends Application {
 
     Group root;
     Canvas canvas;
-    GraphicsContext gc;
+    GraphicsContext graphics_context;
     Scene scene;
     Random random;
 
+    boolean valid_moves_left = true;
     boolean player1_turn = true;
 
     Board board;
+    Renderer renderer;
+    Player playerRED, playerBLUE;
 
 
     @Override
     public void start(Stage stage) {
         random = new Random();
+        board = new Board(
+            ROW_COUNT,
+            COL_COUNT,
+            new int[][]{
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 1, 0, 0, 0, 0, 0, 0, 0 },
+                { 2, 0, 0, 2, 2, 2, 0, 0 },
+                { 1, 0, 0, 1, 1, 0, 0, 0 },
+                { 0, 0, 0, 0, 1, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 2, 0 },
+                { 0, 0, 0, 0, 0, 0, 2, 1 },
+                { 1, 2, 1, 0, 0, 0, 2, 1 },
+            }
+        );
+
+        // vvv   this is renderer logic
         stage.setTitle("Reversi");
         root = new Group();
         canvas = new Canvas(WIDTH, HEIGHT);
-        gc = canvas.getGraphicsContext2D();
+        graphics_context = canvas.getGraphicsContext2D();
 
         root.getChildren().add(canvas);
         scene = new Scene(root);
         stage.setScene(scene);
         stage.show();
+        // ^^^
 
-        board = new Board(ROW_COUNT, COL_COUNT);
+        renderer = new Renderer(this, graphics_context);
+
         drawBoard();
 
-//        Player playerRED = new Player(Cell.PLAYER1.getValue(), board);
-//        Player playerBLUE = new Player(Cell.PLAYER2.getValue(), board);
+//        playerRED = new Player(Cell.PLAYER1.getValue(), board);
+//        playerBLUE = new Player(Cell.PLAYER2.getValue(), board);
 
 
         // this method is input handling. todo: extract other methods from it
@@ -62,19 +80,18 @@ public class Game extends Application {
             public void handle(MouseEvent event) {
                 // input logic
                 System.out.printf("coord: x=%d, y=%d", (int)event.getX(), (int)event.getY());
-                Pair<Integer, Integer> selected_cell = Util.getArrayIndicesFromCoordinates((int)event.getX(), (int)event.getY(), CELL_WIDTH, CELL_HEIGHT);
+                Pair<Integer, Integer> selected_cell = Renderer.getArrayIndicesFromCoordinates((int)event.getX(), (int)event.getY(), CELL_WIDTH, CELL_HEIGHT);
                 int selected_x = selected_cell.getKey();
                 int selected_y = selected_cell.getValue();
                 System.out.printf("\tcell: [x=%d, y=%d]%n", selected_x, selected_y);
                 if(board.getCell(selected_x, selected_y) != Cell.EMPTY.getValue())
                     return;
 
-                // game logic
-                if(player1_turn)
-                    // player class logic
-                    handlePlayer1Turn(selected_x, selected_y);  // playerRED.handle();
+                // GameLogic class logic
+                if(is1stPlayerTurn())
+                    handlePlayerTurn(Cell.PLAYER1.getValue(), Cell.PLAYER2.getValue(), selected_x, selected_y);  // playerRED.handle();
                 else
-                    handlePlayer2Turn(selected_x, selected_y);
+                    handlePlayerTurn(Cell.PLAYER2.getValue(), Cell.PLAYER1.getValue(), selected_x, selected_y);
 
                 // renderer logic
                 drawBoard();
@@ -83,49 +100,32 @@ public class Game extends Application {
         });
     }
 
-    public void handlePlayer1Turn(int x, int y) {
+    public void handlePlayerTurn(int self, int opponent, int x, int y) {
         Vector<Pair<Integer, Integer>> enemy_cells;
-
-        if(!board.isAdjacentToOpponent(Cell.PLAYER2.getValue(), x, y))
+        // game logic. This whole method should probably NOT be in Player class
+        if(!board.isAdjacentToOpponent(opponent, x, y))
             return;
 
-        enemy_cells = board.getCellsSurroundingOpponent(Cell.PLAYER1.getValue(), Cell.PLAYER2.getValue(), x, y);
+        enemy_cells = board.getCellsSurroundingOpponent(self, opponent, x, y);
         if(enemy_cells.isEmpty()) {
             System.out.println("EMPTY");
             return;
         }
 
-        // change opponents disks to your own
+        // change opponents disks to your own. Board logic
         for(Pair<Integer, Integer> p : enemy_cells)
-            board.setCell(p.getKey(), p.getValue(), Cell.PLAYER1.getValue());
-
-        board.setCell(x, y, Cell.PLAYER1.getValue());
+            board.setCell(p.getKey(), p.getValue(), self);
+        board.setCell(x, y, self);  // put disk on the selected cell
 
         // its next players turn only after these previous checks
         // game logic
-        player1_turn = !player1_turn;
+        changeTurns();
     }
 
-    public void handlePlayer2Turn(int x, int y) {
-        Vector<Pair<Integer, Integer>> enemy_cells;
-        if(!board.isAdjacentToOpponent(Cell.PLAYER1.getValue(), x, y))
-            return;
-
-        enemy_cells = board.getCellsSurroundingOpponent(Cell.PLAYER2.getValue(), Cell.PLAYER1.getValue(), x, y);
-        if(enemy_cells.isEmpty()) {
-            System.out.println("EMPTY");
-            return;
-        }
-
-        for(Pair<Integer, Integer> p : enemy_cells)
-            board.setCell(p.getKey(), p.getValue(), Cell.PLAYER2.getValue());
-
-        board.setCell(x, y, Cell.PLAYER2.getValue());
-
-        // game logic
-        player1_turn = !player1_turn;
-    }
-
+    public boolean validMovesLeft() { return valid_moves_left; }
+    public void setValidMovesLeft(boolean value) { valid_moves_left = value; }
+    public boolean is1stPlayerTurn() { return player1_turn; }
+    public void changeTurns() { player1_turn = !player1_turn; }
 
     public enum Cell {
         EMPTY(0),
@@ -144,37 +144,51 @@ public class Game extends Application {
     }
 
     public void drawBoard() {
+        Board valid_moves;
+        Color ghost_color;
+        if(is1stPlayerTurn()) {
+            ghost_color = new Color(1.0f, 0.0f, 0.0f, 0.15f);
+            valid_moves = getValidMoves(board, Cell.PLAYER1.getValue(), Cell.PLAYER2.getValue());
+        }
+        else {
+            ghost_color = new Color(0.0f, 0.0f, 1.0f, 0.15f);
+            valid_moves = getValidMoves(board, Cell.PLAYER2.getValue(), Cell.PLAYER1.getValue());
+        }
+
         for(int x = 0; x < ROW_COUNT; x++)
         {
             for(int y = 0; y < COL_COUNT; y++)
             {
                 // draw board
-                if((x+y) % 2 == 0)  gc.setFill(Color.GRAY);
-                else                gc.setFill(Color.DARKGRAY);
-                gc.fillRect(x * CELL_WIDTH, y * CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT);
+                if((x+y) % 2 == 0)  graphics_context.setFill(Color.GRAY);
+                else                graphics_context.setFill(Color.DARKGRAY);
+                graphics_context.fillRect(x * CELL_WIDTH, y * CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT);
 
-                // draw ghosts
-                if(player1_turn) {
-                    if(board.isAdjacentToOpponent(Cell.PLAYER2.value, x, y))
-                        if(!(board.getCellsSurroundingOpponent(Cell.PLAYER1.getValue(), Cell.PLAYER2.getValue(), x, y).isEmpty()))
-                            gc.setFill(new Color(1.0f, 0.0f, 0.0f, 0.15f));
-                }
-                else {
-                    if(board.isAdjacentToOpponent(Cell.PLAYER1.value, x, y))
-                        if(!(board.getCellsSurroundingOpponent(Cell.PLAYER2.getValue(), Cell.PLAYER1.getValue(), x, y).isEmpty()))
-                            gc.setFill(new Color(0.0f, 0.0f, 1.0f, 0.15f));
-                }
+                if(valid_moves.getCell(x, y) == 9)
+                    graphics_context.setFill(ghost_color);
 
                 // draw disks
                 if(board.getCell(x, y) == Cell.PLAYER1.getValue()) {
-                    gc.setFill(Color.RED);
+                    graphics_context.setFill(Color.RED);
                 }
                 else if(board.getCell(x, y) == Cell.PLAYER2.getValue()) {
-                    gc.setFill(Color.BLUE);
+                    graphics_context.setFill(Color.BLUE);
                 }
-                gc.fillOval(x * CELL_WIDTH, y * CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT);
+                graphics_context.fillOval(x * CELL_WIDTH, y * CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT);
             }
         }
+    }
+
+    public Board getValidMoves(Board board, int self, int opponent) {
+        Board valid_moves = new Board(ROW_COUNT, COL_COUNT);
+
+        for(int x = 0; x < ROW_COUNT; x++)
+            for(int y = 0; y < COL_COUNT; y++)
+                if(board.isAdjacentToOpponent(opponent, x, y))
+                    if(!(board.getCellsSurroundingOpponent(self, opponent, x, y).isEmpty()))
+                        valid_moves.setCell(x, y, 9);
+
+        return valid_moves;
     }
 
     public static void main(String[] args) {

@@ -7,20 +7,27 @@ import java.util.Vector;
 public class Board {
     final int ROW_COUNT;
     final int COL_COUNT;
-    int[][] board = {
-            { 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 1, 1, 1, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 2, 0, 0, 0 },
-            { 0, 0, 0, 1, 1, 1, 0, 0 },
-            { 0, 0, 0, 0, 2, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 1, 2, 0, 0, 0, 0, 0, 0 },
-    };
+    int[][] board;
 
     public Board(int row_count, int col_count) {
         this.ROW_COUNT = row_count;
         this.COL_COUNT = col_count;
+        this.board = new int[][]{
+            { 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 1, 0, 0, 0, 0, 0, 0, 0 },
+            { 2, 0, 0, 0, 0, 0, 0, 0 },
+            { 1, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 1, 2, 1, 0, 0, 0, 0, 0 },
+        };
+    }
+
+    public Board(int row_count, int col_count, int[][] board) {
+        this.ROW_COUNT = row_count;
+        this.COL_COUNT = col_count;
+        this.board = board;
     }
 
     public int[][] getBoard() {
@@ -34,6 +41,9 @@ public class Board {
         Vector<Pair<Integer, Integer>> cells = new Vector<>();
         Vector<Pair<Integer, Integer>> temp = new Vector<>();
 
+        // todo: maybe use `isAdjacentToOpponent` here?
+
+        // fixme: horizontal is FLAWED        see BoardCase3()
         // horizontal
         boolean encountered_self = false;
         boolean encountered_opponent = false;
@@ -63,6 +73,7 @@ public class Board {
         }
 
         // vertical
+        // fixme: vertical is also FLAWED        see BoardCase3()
         temp.clear();
         for(int i = 0; i < ROW_COUNT; i++) {
             if(getCell(x, i) == self && i != y) {
@@ -87,6 +98,8 @@ public class Board {
                 temp.clear();
             }
         }
+
+        // diagonal
 
         return cells;
     }
