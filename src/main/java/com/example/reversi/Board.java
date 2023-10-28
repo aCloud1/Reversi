@@ -55,6 +55,7 @@ public class Board {
                 }
             }
             else if(i == x) {
+                encountered_self = true;
                 if(encountered_opponent) {
                     cells.addAll(temp);
                     temp.clear();
@@ -74,6 +75,8 @@ public class Board {
 
         // vertical
         // fixme: vertical is also FLAWED        see BoardCase3()
+        encountered_self = false;
+        encountered_opponent = false;
         temp.clear();
         for(int i = 0; i < ROW_COUNT; i++) {
             if(getCell(x, i) == self && i != y) {
@@ -84,6 +87,7 @@ public class Board {
                     temp.clear();
                 }
             } else if (i == y) {
+                encountered_self = true;
                 if(encountered_opponent) {
                     cells.addAll(temp);
                     temp.clear();
