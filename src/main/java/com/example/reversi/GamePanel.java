@@ -49,9 +49,8 @@ public class GamePanel extends JPanel implements Runnable {
         );
 
         players = new LinkedList<>();
-        players.add(new Player(Cell.PLAYER2.getValue(), board));
         players.add(new Player(Cell.PLAYER1.getValue(), board));
-        players.get(0).turn = true;
+        players.add(new Player(Cell.PLAYER2.getValue(), board));
 
         score = new ScoreBoard(board);
 

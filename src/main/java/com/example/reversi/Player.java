@@ -7,12 +7,12 @@ import java.util.Vector;
 public class Player {
     int color;
     Board board;
-    boolean turn;
+    boolean valid_moves;
 
     public Player(int disk_color, Board board) {
         this.color = disk_color;
         this.board = board;
-        this.turn = false;
+        this.valid_moves = true;
     }
 
     public boolean handle(int x, int y) {

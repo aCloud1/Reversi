@@ -44,6 +44,7 @@ public class Board {
         cells.addAll(checkVertical(self, x, y));
 
         // diagonal
+        cells.addAll(checkDiagonal(self, x, y));
 
         return cells;
     }
@@ -55,7 +56,7 @@ public class Board {
         boolean encountered_opponent = false;
 
 
-        for(int i = clicked_x; i > 0; i--) {
+        for(int i = clicked_x; i >= 0; i--) {
             if(encountered_self > 1)
                 break;
             else if(getCell(i, clicked_y) == self || i == clicked_x) {
@@ -103,7 +104,7 @@ public class Board {
         boolean encountered_opponent = false;
 
 
-        for(int i = clicked_y; i > 0; i--) {
+        for(int i = clicked_y; i >= 0; i--) {
             if(encountered_self > 1)
                 break;
             else if(getCell(clicked_x, i) == self || i == clicked_y) {
@@ -140,6 +141,126 @@ public class Board {
             }
             else break;
         }
+
+        return cells;
+    }
+
+    public Vector<Pair<Integer, Integer>> checkDiagonal(int self, int clicked_x, int clicked_y) {
+        Vector<Pair<Integer, Integer>> cells = new Vector<>();
+        Vector<Pair<Integer, Integer>> temp = new Vector<>();
+        int encountered_self = 0;
+        boolean encountered_opponent = false;
+        int i, j;
+
+
+        //region left up
+        i = clicked_x;
+        j = clicked_y;
+        while(i >= 0 && j >= 0) {
+            if(encountered_self > 1)
+                break;
+            else if(getCell(i, j) == self || (i == clicked_x && j == clicked_y)) {  // the clicked check here is probably not needed, because we will never come back to this cell. DONT DELETE WITHOUT CHECKING FIRST
+                encountered_self++;
+                if(encountered_opponent) {
+                    cells.addAll(temp);
+                    temp.clear();
+                }
+                i--;
+                j--;
+            }
+            else if(getCell(i, j) != Cell.EMPTY.getValue()) {
+                encountered_opponent = true;
+                temp.add(new Pair<>(i, j));
+                i--;
+                j--;
+            }
+            else break;
+        }
+        //endregion
+
+        //region right down
+        temp.clear();
+        encountered_self = 0;
+        encountered_opponent = false;
+        i = clicked_x;
+        j = clicked_y;
+        while(i < COL_COUNT && j < ROW_COUNT) {
+            if(encountered_self > 1)
+                break;
+            else if(getCell(i, j) == self || (i == clicked_x && j == clicked_y)) {
+                encountered_self++;
+                if(encountered_opponent) {
+                    cells.addAll(temp);
+                    temp.clear();
+                }
+                i++;
+                j++;
+            }
+            else if(getCell(i, j) != Cell.EMPTY.getValue()) {
+                encountered_opponent = true;
+                temp.add(new Pair<>(i, j));
+                i++;
+                j++;
+            }
+            else break;
+        }
+        //endregion
+
+        //region left down
+        temp.clear();
+        encountered_self = 0;
+        encountered_opponent = false;
+        i = clicked_x;
+        j = clicked_y;
+        while(i >= 0 && j < ROW_COUNT) {
+            if(encountered_self > 1)
+                break;
+            else if(getCell(i, j) == self || (i == clicked_x && j == clicked_y)) {
+                encountered_self++;
+                if(encountered_opponent) {
+                    cells.addAll(temp);
+                    temp.clear();
+                }
+                i--;
+                j++;
+            }
+            else if(getCell(i, j) != Cell.EMPTY.getValue()) {
+                encountered_opponent = true;
+                temp.add(new Pair<>(i, j));
+                i--;
+                j++;
+            }
+            else break;
+        }
+        //endregion
+
+        //region right up
+        temp.clear();
+        encountered_self = 0;
+        encountered_opponent = false;
+        i = clicked_x;
+        j = clicked_y;
+        while(i < COL_COUNT && j >= 0) {
+            if(encountered_self > 1)
+                break;
+            else if(getCell(i, j) == self || (i == clicked_x && j == clicked_y)) {
+                encountered_self++;
+                if(encountered_opponent) {
+                    cells.addAll(temp);
+                    temp.clear();
+                }
+                i++;
+                j--;
+            }
+            else if(getCell(i, j) != Cell.EMPTY.getValue()) {
+                encountered_opponent = true;
+                temp.add(new Pair<>(i, j));
+                i++;
+                j--;
+            }
+            else break;
+        }
+        //endregion
 
         return cells;
     }
