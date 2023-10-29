@@ -22,8 +22,9 @@ public class GamePanel extends JPanel implements Runnable {
     Renderer renderer;
 
     InputHandler input_handler;
-
+    FPS fps;
     LinkedList<Player> players;
+
 
     public GamePanel() {
         this.setPreferredSize(new Dimension(WIDTH, HEIGHT));
@@ -36,9 +37,9 @@ public class GamePanel extends JPanel implements Runnable {
             ROW_COUNT,
             COL_COUNT,
             new int[][]{
-                { 0, 0, 0, 0, 0, 0, 0, 2 }, // putting here
+                { 0, 0, 0, 0, 0, 0, 0, 2 },
                 { 0, 0, 1, 1, 1, 0, 0, 1 },
-                { 0, 0, 2, 0, 0, 0, 0, 0 }, // or here should not be possible
+                { 0, 0, 2, 0, 0, 0, 0, 0 },
                 { 0, 0, 0, 0, 2, 0, 0, 0 },
                 { 0, 0, 0, 1, 1, 1, 0, 0 },
                 { 0, 0, 0, 0, 2, 0, 0, 0 },
@@ -54,6 +55,7 @@ public class GamePanel extends JPanel implements Runnable {
 
         score = new ScoreBoard(board);
 
+        fps = FPS.getInstance();
         input_handler = new InputHandler();
         this.addMouseListener(input_handler);
     }
@@ -64,12 +66,14 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
 
-    // the game loop
     @Override
     public void run() {
+        fps.init();
+
         while(game_thread != null) {
             update();
             repaint();
+            fps.tick();
         }
     }
 
