@@ -5,11 +5,9 @@ import javafx.scene.paint.Color;
 import javafx.util.Pair;
 
 public class Renderer {
-    Game game;
     int CELL_WIDTH, CELL_HEIGHT;
     GraphicsContext graphics_context;
-    public Renderer(Game game, GraphicsContext gc) {
-        this.game = game;
+    public Renderer(GraphicsContext gc) {
         this.graphics_context = gc;
     }
 
