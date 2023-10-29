@@ -36,20 +36,20 @@ public class GamePanel extends JPanel implements Runnable {
             ROW_COUNT,
             COL_COUNT,
             new int[][]{
-                { 0, 0, 0, 0, 0, 0, 0, 0 },
-                { 0, 0, 0, 0, 0, 0, 0, 0 },
-                { 0, 0, 0, 2, 2, 2, 0, 0 },
-                { 0, 0, 0, 1, 1, 0, 0, 0 },
-                { 0, 0, 0, 0, 1, 0, 0, 0 },
-                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 2 }, // putting here
+                { 0, 0, 1, 1, 1, 0, 0, 1 },
+                { 0, 0, 2, 0, 0, 0, 0, 0 }, // or here should not be possible
+                { 0, 0, 0, 0, 2, 0, 0, 0 },
+                { 0, 0, 0, 1, 1, 1, 0, 0 },
+                { 0, 0, 0, 0, 2, 0, 0, 0 },
                 { 0, 0, 0, 0, 0, 0, 0, 0 },
                 { 0, 0, 0, 0, 0, 0, 0, 0 },
             }
         );
 
         players = new LinkedList<>();
-        players.add(new Player(Cell.PLAYER1.getValue(), board));
         players.add(new Player(Cell.PLAYER2.getValue(), board));
+        players.add(new Player(Cell.PLAYER1.getValue(), board));
         players.get(0).turn = true;
 
         score = new ScoreBoard(board);

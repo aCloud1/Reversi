@@ -39,76 +39,107 @@ public class Board {
 
     public Vector<Pair<Integer, Integer>> getCellsSurroundingOpponent(int self, int x, int y) {
         Vector<Pair<Integer, Integer>> cells = new Vector<>();
-        Vector<Pair<Integer, Integer>> temp = new Vector<>();
 
-        // todo: maybe use `isAdjacentToOpponent` here?
-
-        // fixme: horizontal is FLAWED        see BoardCase3()
-        // horizontal
-        boolean encountered_self = false;
-        boolean encountered_opponent = false;
-        for(int i = 0; i < COL_COUNT; i++) {
-            if(getCell(i, y) == self && i != x) {
-                encountered_self = true;
-                if(encountered_opponent) {
-                    encountered_opponent = false;
-                    cells.addAll(temp);
-                    temp.clear();
-                }
-            }
-            else if(i == x) {
-                encountered_self = true;
-                if(encountered_opponent) {
-                    cells.addAll(temp);
-                    temp.clear();
-                }
-            }
-            else if(getCell(i, y) != Cell.EMPTY.getValue()) {
-                encountered_opponent = true;
-                if(encountered_self)
-                    temp.add(new Pair<>(i, y));
-            }
-            else {
-                encountered_self = false;
-                encountered_opponent = false;
-                temp.clear();
-            }
-        }
-
-        // vertical
-        // fixme: vertical is also FLAWED        see BoardCase3()
-        encountered_self = false;
-        encountered_opponent = false;
-        temp.clear();
-        for(int i = 0; i < ROW_COUNT; i++) {
-            if(getCell(x, i) == self && i != y) {
-                encountered_self = true;
-                if(encountered_opponent) {
-                    encountered_opponent = false;
-                    cells.addAll(temp);
-                    temp.clear();
-                }
-            }
-            else if (i == y) {
-                encountered_self = true;
-                if(encountered_opponent) {
-                    cells.addAll(temp);
-                    temp.clear();
-                }
-            }
-            else if (getCell(x, i) != Cell.EMPTY.getValue()) {
-                encountered_opponent = true;
-                if (encountered_self)
-                    temp.add(new Pair<>(x, i));
-            }
-            else {
-                encountered_self = false;
-                encountered_opponent = false;
-                temp.clear();
-            }
-        }
+        cells.addAll(checkHorizontal(self, x, y));
+        cells.addAll(checkVertical(self, x, y));
 
         // diagonal
+
+        return cells;
+    }
+
+    public Vector<Pair<Integer, Integer>> checkHorizontal(int self, int clicked_x, int clicked_y) {
+        Vector<Pair<Integer, Integer>> cells = new Vector<>();
+        Vector<Pair<Integer, Integer>> temp = new Vector<>();
+        int encountered_self = 0;
+        boolean encountered_opponent = false;
+
+
+        for(int i = clicked_x; i > 0; i--) {
+            if(encountered_self > 1)
+                break;
+            else if(getCell(i, clicked_y) == self || i == clicked_x) {
+                encountered_self++;
+                if(encountered_opponent) {
+                    cells.addAll(temp);
+                    temp.clear();
+                }
+            }
+            else if(getCell(i, clicked_y) != Cell.EMPTY.getValue()) {
+                encountered_opponent = true;
+                temp.add(new Pair<>(i, clicked_y));
+            }
+            else break;
+        }
+
+        temp.clear();
+        encountered_self = 0;
+        encountered_opponent = false;
+
+        for(int i = clicked_x; i < ROW_COUNT; i++) {
+            if(encountered_self > 1)
+                break;
+            else if(getCell(i, clicked_y) == self || i == clicked_x) {
+                encountered_self++;
+                if(encountered_opponent) {
+                    cells.addAll(temp);
+                    temp.clear();
+                }
+            }
+            else if(getCell(i, clicked_y) != Cell.EMPTY.getValue()) {
+                encountered_opponent = true;
+                temp.add(new Pair<>(i, clicked_y));
+            }
+            else break;
+        }
+
+        return cells;
+    }
+
+    public Vector<Pair<Integer, Integer>> checkVertical(int self, int clicked_x, int clicked_y) {
+        Vector<Pair<Integer, Integer>> cells = new Vector<>();
+        Vector<Pair<Integer, Integer>> temp = new Vector<>();
+        int encountered_self = 0;
+        boolean encountered_opponent = false;
+
+
+        for(int i = clicked_y; i > 0; i--) {
+            if(encountered_self > 1)
+                break;
+            else if(getCell(clicked_x, i) == self || i == clicked_y) {
+                encountered_self++;
+                if(encountered_opponent) {
+                    cells.addAll(temp);
+                    temp.clear();
+                }
+            }
+            else if(getCell(clicked_x, i) != Cell.EMPTY.getValue()) {
+                encountered_opponent = true;
+                temp.add(new Pair<>(clicked_x, i));
+            }
+            else break;
+        }
+
+        temp.clear();
+        encountered_self = 0;
+        encountered_opponent = false;
+
+        for(int i = clicked_y; i < ROW_COUNT; i++) {
+            if(encountered_self > 1)
+                break;
+            else if(getCell(clicked_x, i) == self || i == clicked_y) {
+                encountered_self++;
+                if(encountered_opponent) {
+                    cells.addAll(temp);
+                    temp.clear();
+                }
+            }
+            else if(getCell(clicked_x, i) != Cell.EMPTY.getValue()) {
+                encountered_opponent = true;
+                temp.add(new Pair<>(clicked_x, i));
+            }
+            else break;
+        }
 
         return cells;
     }
