@@ -144,4 +144,14 @@ public class Board {
 
         return is_adjacent;
     }
+
+    public int calculatePlayerDisks(int player) {
+        int score = 0;
+        for(int x = 0; x < ROW_COUNT; x++)
+            for(int y = 0; y < COL_COUNT; y++)
+                if(getCell(x, y) == player)
+                    score++;
+
+        return score;
+    }
 }

@@ -16,6 +16,7 @@ public class GamePanel extends JPanel implements Runnable {
     boolean player1_turn = true;
     Thread game_thread;
     Board board;
+    ScoreBoard score;
     Renderer renderer;
 
     InputHandler input_handler;
@@ -31,16 +32,18 @@ public class GamePanel extends JPanel implements Runnable {
             ROW_COUNT,
             COL_COUNT,
             new int[][]{
-                { 0, 0, 0, 0, 0, 2, 0, 0 },
-                { 0, 0, 0, 0, 1, 2, 0, 0 },
-                { 0, 0, 0, 0, 1, 2, 1, 1 },
-                { 0, 0, 0, 0, 1, 2, 0, 1 },
-                { 0, 0, 0, 0, 1, 1, 1, 1 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 1, 0, 0, 0, 0 },
+                { 0, 0, 0, 2, 2, 0, 0, 0 },
+                { 0, 0, 0, 0, 2, 1, 0, 0 },
                 { 0, 0, 0, 0, 0, 0, 0, 0 },
                 { 0, 0, 0, 0, 0, 0, 0, 0 },
                 { 0, 0, 0, 0, 0, 0, 0, 0 },
             }
         );
+
+        score = new ScoreBoard(board);
 
         input_handler = new InputHandler();
         this.addMouseListener(input_handler);
@@ -80,6 +83,8 @@ public class GamePanel extends JPanel implements Runnable {
             handlePlayerTurn(Cell.PLAYER2.getValue(), Cell.PLAYER1.getValue(), x, y);
 
         input_handler.inputHandled();
+        score.update();
+        System.out.println(score.toString());
     }
 
     public void paintComponent(Graphics g) {

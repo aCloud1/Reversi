@@ -12,6 +12,7 @@ public class Renderer {
     }
 
     public void drawBoard(Graphics g, Board board, Board valid_moves, boolean first_players_turn) {
+        // this depends on player's turn
         Color ghost_color;
         if(first_players_turn) ghost_color = new Color(1.0f, 0.0f, 0.0f, 0.15f);
         else ghost_color = new Color(0.0f, 0.0f, 1.0f, 0.15f);
