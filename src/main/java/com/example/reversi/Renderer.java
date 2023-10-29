@@ -23,7 +23,9 @@ public class Renderer {
         player_to_ghost_color.put(Cell.PLAYER2.getValue(), new Color(0.0f, 0.0f, 1.0f, 0.15f));
     }
 
-    public void drawBoard(Graphics g, Board board, Board valid_moves, int player_color) {
+    public void drawBoard(Graphics g, Board board, int player_color) {
+        Board valid_moves = board.getValidMoves(player_color);
+
         for(int x = 0; x < board.ROW_COUNT; x++)
         {
             for(int y = 0; y < board.COL_COUNT; y++)

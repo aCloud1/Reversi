@@ -38,9 +38,9 @@ public class GamePanel extends JPanel implements Runnable {
             new int[][]{
                 { 0, 0, 0, 0, 0, 0, 0, 0 },
                 { 0, 0, 0, 0, 0, 0, 0, 0 },
-                { 0, 0, 0, 1, 0, 0, 0, 0 },
-                { 0, 0, 0, 2, 2, 0, 0, 0 },
-                { 0, 0, 0, 0, 2, 1, 0, 0 },
+                { 0, 0, 0, 2, 2, 2, 0, 0 },
+                { 0, 0, 0, 1, 1, 0, 0, 0 },
+                { 0, 0, 0, 0, 1, 0, 0, 0 },
                 { 0, 0, 0, 0, 0, 0, 0, 0 },
                 { 0, 0, 0, 0, 0, 0, 0, 0 },
                 { 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -97,10 +97,7 @@ public class GamePanel extends JPanel implements Runnable {
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-
-        Board valid_moves = getValidMoves(board, players.getFirst().color);
-
-        renderer.drawBoard(g, board, valid_moves, players.getFirst().color);
+        renderer.drawBoard(g, board, players.getFirst().color);
         g.dispose();
     }
 
@@ -112,15 +109,4 @@ public class GamePanel extends JPanel implements Runnable {
         players.addLast(players.pop());
     }
 
-    public Board getValidMoves(Board board, int self) {
-        Board valid_moves = new Board(ROW_COUNT, COL_COUNT);
-
-        for(int x = 0; x < ROW_COUNT; x++)
-            for(int y = 0; y < COL_COUNT; y++)
-                if(board.isAdjacentToOpponent(self, x, y))
-                    if(!(board.getCellsSurroundingOpponent(self, x, y).isEmpty()))
-                        valid_moves.setCell(x, y, 9);
-
-        return valid_moves;
-    }
 }

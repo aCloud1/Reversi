@@ -52,6 +52,8 @@ public class Board {
                 encountered_self = true;
                 if(encountered_opponent) {
                     encountered_opponent = false;
+                    cells.addAll(temp);
+                    temp.clear();
                 }
             }
             else if(i == x) {
@@ -86,17 +88,20 @@ public class Board {
                     cells.addAll(temp);
                     temp.clear();
                 }
-            } else if (i == y) {
+            }
+            else if (i == y) {
                 encountered_self = true;
                 if(encountered_opponent) {
                     cells.addAll(temp);
                     temp.clear();
                 }
-            } else if (getCell(x, i) != Cell.EMPTY.getValue()) {
+            }
+            else if (getCell(x, i) != Cell.EMPTY.getValue()) {
                 encountered_opponent = true;
                 if (encountered_self)
                     temp.add(new Pair<>(x, i));
-            } else {
+            }
+            else {
                 encountered_self = false;
                 encountered_opponent = false;
                 temp.clear();
@@ -106,6 +111,18 @@ public class Board {
         // diagonal
 
         return cells;
+    }
+
+    public Board getValidMoves(int player) {
+        Board valid_moves = new Board(ROW_COUNT, COL_COUNT);
+
+        for(int x = 0; x < ROW_COUNT; x++)
+            for(int y = 0; y < COL_COUNT; y++)
+                if(isAdjacentToOpponent(player, x, y))
+                    if(!(getCellsSurroundingOpponent(player, x, y).isEmpty()))
+                        valid_moves.setCell(x, y, 9);
+
+        return valid_moves;
     }
 
     public boolean isAdjacentToOpponent(int self, int x, int y) {
