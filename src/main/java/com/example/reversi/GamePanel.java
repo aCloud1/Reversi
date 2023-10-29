@@ -16,6 +16,7 @@ public class GamePanel extends JPanel implements Runnable {
     boolean player1_turn = true;
     Thread game_thread;
     Board board;
+    Renderer renderer;
 
     InputHandler input_handler;
 
@@ -24,19 +25,21 @@ public class GamePanel extends JPanel implements Runnable {
         this.setBackground(Color.BLACK);
         this.setDoubleBuffered(true);
 
+        renderer = new Renderer(CELL_WIDTH, CELL_HEIGHT);
+
         board = new Board(
-                ROW_COUNT,
-                COL_COUNT,
-                new int[][]{
-                    { 0, 0, 0, 0, 0, 2, 0, 0 },
-                    { 0, 0, 0, 0, 1, 2, 0, 0 },
-                    { 0, 0, 0, 0, 1, 2, 1, 1 },
-                    { 0, 0, 0, 0, 1, 2, 0, 1 },
-                    { 0, 0, 0, 0, 1, 1, 1, 1 },
-                    { 0, 0, 0, 0, 0, 0, 0, 0 },
-                    { 0, 0, 0, 0, 0, 0, 0, 0 },
-                    { 0, 0, 0, 0, 0, 0, 0, 0 },
-                }
+            ROW_COUNT,
+            COL_COUNT,
+            new int[][]{
+                { 0, 0, 0, 0, 0, 2, 0, 0 },
+                { 0, 0, 0, 0, 1, 2, 0, 0 },
+                { 0, 0, 0, 0, 1, 2, 1, 1 },
+                { 0, 0, 0, 0, 1, 2, 0, 1 },
+                { 0, 0, 0, 0, 1, 1, 1, 1 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0 },
+            }
         );
 
         input_handler = new InputHandler();
@@ -63,7 +66,7 @@ public class GamePanel extends JPanel implements Runnable {
             return;
 
         // convert to array indices
-        Pair<Integer, Integer> pos = Renderer.getArrayIndicesFromCoordinates(input_handler.getX(), input_handler.getY(), CELL_WIDTH, CELL_HEIGHT);
+        Pair<Integer, Integer> pos = renderer.getArrayIndicesFromCoordinates(input_handler.getX(), input_handler.getY());
         int x = pos.getKey();
         int y = pos.getValue();
 
@@ -81,44 +84,16 @@ public class GamePanel extends JPanel implements Runnable {
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        drawBoard(g);
-        g.dispose();
-    }
 
-    public void drawBoard(Graphics g) {
         Board valid_moves;
-        Color ghost_color;
         if(is1stPlayerTurn()) {
-            ghost_color = new Color(1.0f, 0.0f, 0.0f, 0.15f);
-            valid_moves = getValidMoves(board, Cell.PLAYER1.getValue(), Cell.PLAYER2.getValue());
-        }
-        else {
-            ghost_color = new Color(0.0f, 0.0f, 1.0f, 0.15f);
-            valid_moves = getValidMoves(board, Cell.PLAYER2.getValue(), Cell.PLAYER1.getValue());
+            valid_moves = getValidMoves(board, Cell.PLAYER1.value, Cell.PLAYER2.value);
+        } else {
+            valid_moves = getValidMoves(board, Cell.PLAYER2.value, Cell.PLAYER1.value);
         }
 
-        for(int x = 0; x < ROW_COUNT; x++)
-        {
-            for(int y = 0; y < COL_COUNT; y++)
-            {
-                // draw board
-                if((x+y) % 2 == 0)  g.setColor(Color.GRAY);
-                else                g.setColor(Color.DARK_GRAY);
-                g.fillRect(x * CELL_WIDTH, y * CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT);
-
-                if(valid_moves.getCell(x, y) == 9)
-                    g.setColor(ghost_color);
-
-                // draw disks
-                if(board.getCell(x, y) == Cell.PLAYER1.getValue()) {
-                    g.setColor(Color.RED);
-                }
-                else if(board.getCell(x, y) == Cell.PLAYER2.getValue()) {
-                    g.setColor(Color.BLUE);
-                }
-                g.fillOval(x * CELL_WIDTH, y * CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT);
-            }
-        }
+        renderer.drawBoard(g, board, valid_moves, is1stPlayerTurn());
+        g.dispose();
     }
 
 
