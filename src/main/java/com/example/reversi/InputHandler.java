@@ -12,8 +12,6 @@ public class InputHandler implements MouseListener {
         x = e.getX();
         y = e.getY();
         got_input = true;
-
-        System.out.printf("\tcell: [x=%d, y=%d]%n", x, y);
     }
 
     public boolean hasInput() { return got_input; }

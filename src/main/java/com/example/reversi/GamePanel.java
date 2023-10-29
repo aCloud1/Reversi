@@ -14,45 +14,42 @@ public class GamePanel extends JPanel implements Runnable {
     public final int COL_COUNT = 8;
     public final int CELL_WIDTH = WIDTH / ROW_COUNT;
     public final int CELL_HEIGHT = HEIGHT / COL_COUNT;
-    boolean valid_moves_left = true;
-    boolean player1_turn = true;
     Thread game_thread;
     Board board;
-    ScoreBoard score;
     Renderer renderer;
-
     InputHandler input_handler;
     FPS fps;
     LinkedList<Player> players;
 
+    private boolean game_over;
 
     public GamePanel() {
         this.setPreferredSize(new Dimension(WIDTH, HEIGHT));
         this.setBackground(Color.BLACK);
         this.setDoubleBuffered(true);
 
-        renderer = new Renderer(CELL_WIDTH, CELL_HEIGHT, this);
+        renderer = new Renderer(WIDTH, HEIGHT, CELL_WIDTH, CELL_HEIGHT, this);
 
         board = new Board(
             ROW_COUNT,
             COL_COUNT,
             new int[][]{
-                { 0, 0, 0, 0, 0, 0, 0, 2 },
-                { 0, 0, 1, 1, 1, 0, 0, 1 },
-                { 0, 0, 2, 0, 0, 0, 0, 0 },
-                { 0, 0, 0, 0, 2, 0, 0, 0 },
-                { 0, 0, 0, 1, 1, 1, 0, 0 },
-                { 0, 0, 0, 0, 2, 0, 0, 0 },
-                { 0, 0, 0, 0, 0, 0, 0, 0 },
-                { 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 1, 1, 1, 1, 1, 1, 1, 1 },
+                { 1, 1, 1, 1, 1, 1, 1, 1 },
+                { 1, 1, 1, 1, 1, 1, 1, 1 },
+                { 1, 1, 1, 1, 1, 1, 1, 1 },
+                { 1, 1, 1, 1, 1, 1, 1, 1 },
+                { 1, 1, 1, 1, 1, 1, 1, 1 },
+                { 1, 1, 1, 1, 1, 1, 1, 1 },
+                { 2, 1, 1, 1, 1, 1, 1, 0 }
             }
         );
 
         players = new LinkedList<>();
-        players.add(new Player(Cell.PLAYER1.getValue(), board));
-        players.add(new Player(Cell.PLAYER2.getValue(), board));
+        players.add(new Player("BLUE", Cell.PLAYER2.getValue(), board));
+        players.add(new Player("RED", Cell.PLAYER1.getValue(), board));
 
-        score = new ScoreBoard(board);
+        game_over = false;
 
         fps = FPS.getInstance();
         input_handler = new InputHandler();
@@ -77,6 +74,18 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     public void update() {
+        if(board.noEmptyCellsLeft() || !playerWithValidMovesExist()) {
+            game_over = true;
+            game_thread = null;
+        }
+
+        // check if valid moves exist
+        players.getFirst().setSkippingTurn(!board.validMovesExist(players.getFirst().getDiskType()));
+        if(players.getFirst().isSkippingTurn()) {
+            changeTurns();
+            return;
+        }
+
         // if no key pressed
         if(!input_handler.hasInput())
             return;
@@ -92,21 +101,29 @@ public class GamePanel extends JPanel implements Runnable {
         boolean handled = players.getFirst().handle(x, y);
         if(handled) {
             changeTurns();
-            score.update();
+            players.getFirst().setScore(board.calculatePlayerDisks(Cell.PLAYER1.getValue()));
         }
         input_handler.inputHandled();
-        System.out.println(score.toString());
     }
+
+    private boolean playerWithValidMovesExist() {
+        for(Player p : players)
+            if(!p.isSkippingTurn())
+                return true;
+        return false;
+    }
+
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        renderer.drawBoard(g, board, players.getFirst().color);
+        if(!game_over)
+            renderer.drawBoard(g, board, players.getFirst().getDiskType());
+        else
+            renderer.drawText(g, String.format(ScoreBoard.getWinnerText(players)));
+
         g.dispose();
     }
 
-    public boolean validMovesLeft() { return valid_moves_left; }
-    public void setValidMovesLeft(boolean value) { valid_moves_left = value; }
-    public boolean is1stPlayerTurn() { return player1_turn; }
     public void changeTurns() {
         // move the current player to the end of queue
         players.addLast(players.pop());

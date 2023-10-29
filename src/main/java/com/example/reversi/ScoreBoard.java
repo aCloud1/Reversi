@@ -1,21 +1,21 @@
 package com.example.reversi;
 
+import java.util.LinkedList;
+
 public class ScoreBoard {
     Board board;
-    int player1_score;
-    int player2_score;
 
     public ScoreBoard(Board board) {
         this.board = board;
     }
 
-    public void update() {
-        player1_score = board.calculatePlayerDisks(Cell.PLAYER1.getValue());
-        player2_score = board.calculatePlayerDisks(Cell.PLAYER2.getValue());
-    }
+    public static String getWinnerText(LinkedList<Player> players) {
+        Player winner = players.getFirst();
+        for(Player p : players) {
+            if(p.getScore() > winner.getScore())
+                winner = p;
+        }
 
-    @Override
-    public String toString() {
-        return String.format("<%d  |  %d>\n", player1_score, player2_score);
+        return String.format("Winner: %s", winner);
     }
 }

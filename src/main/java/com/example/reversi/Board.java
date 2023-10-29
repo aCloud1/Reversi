@@ -323,4 +323,23 @@ public class Board {
 
         return score;
     }
+
+    public boolean validMovesExist(int player) {
+        Board b = getValidMoves(player);
+
+        for(int x = 0; x < ROW_COUNT; x++)
+            for(int y = 0; y < COL_COUNT; y++)
+                if(b.getCell(x, y) == 9)
+                    return true;
+
+        return false;
+    }
+
+    public boolean noEmptyCellsLeft() {
+        for(int x = 0; x < ROW_COUNT; x++)
+            for(int y = 0; y < COL_COUNT; y++)
+                if(getCell(x, y) == Cell.EMPTY.getValue())
+                    return false;
+        return true;
+    }
 }

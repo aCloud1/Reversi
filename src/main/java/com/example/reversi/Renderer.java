@@ -5,6 +5,7 @@ import java.awt.*;
 import java.util.Hashtable;
 
 public class Renderer {
+    int WINDOW_WIDTH, WINDOW_HEIGHT;
     int CELL_WIDTH, CELL_HEIGHT;
     GamePanel game;
 
@@ -12,7 +13,9 @@ public class Renderer {
     private Color board_gray1, board_gray2;
 
     Hashtable<Integer, Color> player_to_color, player_to_ghost_color;
-    public Renderer(int cell_width, int cell_height, GamePanel game) {
+    public Renderer(int window_width, int window_height, int cell_width, int cell_height, GamePanel game) {
+        this.WINDOW_WIDTH = window_width;
+        this.WINDOW_HEIGHT = window_height;
         this.CELL_WIDTH = cell_width;
         this.CELL_HEIGHT = cell_height;
         this.game = game;
@@ -46,8 +49,8 @@ public class Renderer {
 
                 // draw disks
                 for(Player p : game.players) {
-                    if(board.getCell(x, y) == p.color) {
-                        g.setColor(player_to_color.get(p.color));
+                    if(board.getCell(x, y) == p.disk_type) {
+                        g.setColor(player_to_color.get(p.disk_type));
                         break;
                     }
                 }
@@ -55,6 +58,21 @@ public class Renderer {
                 g.fillOval(x * CELL_WIDTH, y * CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT);
             }
         }
+    }
+
+    public void drawText(Graphics g, String text) {
+        Font font = new Font("Ubuntu", Font.PLAIN, 24);
+        FontMetrics metrics = g.getFontMetrics(font);
+        Rectangle rect = new Rectangle(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+        g.setColor(Color.WHITE);
+        g.fillRect(rect.x, rect.y, rect.width, rect.height);
+        g.setColor(Color.BLACK);
+        g.setFont(font);
+        g.drawString(text,
+                rect.x + (rect.width - metrics.stringWidth(text)) / 2,
+                rect.y + ((rect.height - metrics.getHeight()) / 2) + metrics.getAscent()
+        );
     }
 
     public Pair<Integer, Integer> getArrayIndicesFromCoordinates(int x, int y) {
