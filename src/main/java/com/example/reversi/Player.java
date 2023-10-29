@@ -5,14 +5,19 @@ import javafx.util.Pair;
 import java.util.Vector;
 
 public class Player {
-//    int color;
-//    Board board;
+    int color;
+    boolean turn = false;
+    //    Board board;
 //
-//    public Player(int disk_color, Board board) {
-//        this.color = disk_color;
+    public Player(int disk_color) {
+        this.color = disk_color;
+    }
+
+    public Player(int disk_color, Board board) {
+        this.color = disk_color;
 //        this.board = board;
-//    }
-//
+    }
+
 //    public void handle(int x, int y) {
 //        Vector<Pair<Integer, Integer>> enemy_cells;
 //

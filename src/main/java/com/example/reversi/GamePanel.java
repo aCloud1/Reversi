@@ -2,7 +2,11 @@ package com.example.reversi;
 import javafx.util.Pair;
 
 import javax.swing.JPanel;
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Vector;
 
 public class GamePanel extends JPanel implements Runnable {
@@ -20,6 +24,8 @@ public class GamePanel extends JPanel implements Runnable {
     Renderer renderer;
 
     InputHandler input_handler;
+
+    LinkedList<Player> players;
 
     public GamePanel() {
         this.setPreferredSize(new Dimension(WIDTH, HEIGHT));
@@ -42,6 +48,11 @@ public class GamePanel extends JPanel implements Runnable {
                 { 0, 0, 0, 0, 0, 0, 0, 0 },
             }
         );
+
+        players = new LinkedList<>();
+        players.add(new Player(Cell.PLAYER1.value));
+        players.add(new Player(Cell.PLAYER2.value));
+        players.get(0).turn = true;
 
         score = new ScoreBoard(board);
 
@@ -78,9 +89,9 @@ public class GamePanel extends JPanel implements Runnable {
             return;
 
         if(is1stPlayerTurn())
-            handlePlayerTurn(Cell.PLAYER1.getValue(), Cell.PLAYER2.getValue(), x, y);
+            handlePlayerTurn(Cell.PLAYER1.getValue(), x, y);
         else
-            handlePlayerTurn(Cell.PLAYER2.getValue(), Cell.PLAYER1.getValue(), x, y);
+            handlePlayerTurn(Cell.PLAYER2.getValue(), x, y);
 
         input_handler.inputHandled();
         score.update();
@@ -92,9 +103,9 @@ public class GamePanel extends JPanel implements Runnable {
 
         Board valid_moves;
         if(is1stPlayerTurn()) {
-            valid_moves = getValidMoves(board, Cell.PLAYER1.value, Cell.PLAYER2.value);
+            valid_moves = getValidMoves(board, Cell.PLAYER1.value);
         } else {
-            valid_moves = getValidMoves(board, Cell.PLAYER2.value, Cell.PLAYER1.value);
+            valid_moves = getValidMoves(board, Cell.PLAYER2.value);
         }
 
         renderer.drawBoard(g, board, valid_moves, is1stPlayerTurn());
@@ -102,13 +113,13 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
 
-    public void handlePlayerTurn(int self, int opponent, int x, int y) {
+    public void handlePlayerTurn(int self, int x, int y) {
         Vector<Pair<Integer, Integer>> enemy_cells;
         // game logic. This whole method should probably NOT be in Player class
-        if(!board.isAdjacentToOpponent(opponent, x, y))
+        if(!board.isAdjacentToOpponent(self, x, y))
             return;
 
-        enemy_cells = board.getCellsSurroundingOpponent(self, opponent, x, y);
+        enemy_cells = board.getCellsSurroundingOpponent(self, x, y);
         if(enemy_cells.isEmpty()) {
             System.out.println("EMPTY");
             return;
@@ -127,7 +138,9 @@ public class GamePanel extends JPanel implements Runnable {
     public boolean validMovesLeft() { return valid_moves_left; }
     public void setValidMovesLeft(boolean value) { valid_moves_left = value; }
     public boolean is1stPlayerTurn() { return player1_turn; }
-    public void changeTurns() { player1_turn = !player1_turn; }
+    public void changeTurns() {
+        player1_turn = !player1_turn;
+    }
 
     public enum Cell {
         EMPTY(0),
@@ -145,13 +158,13 @@ public class GamePanel extends JPanel implements Runnable {
         }
     }
 
-    public Board getValidMoves(Board board, int self, int opponent) {
+    public Board getValidMoves(Board board, int self) {
         Board valid_moves = new Board(ROW_COUNT, COL_COUNT);
 
         for(int x = 0; x < ROW_COUNT; x++)
             for(int y = 0; y < COL_COUNT; y++)
-                if(board.isAdjacentToOpponent(opponent, x, y))
-                    if(!(board.getCellsSurroundingOpponent(self, opponent, x, y).isEmpty()))
+                if(board.isAdjacentToOpponent(self, x, y))
+                    if(!(board.getCellsSurroundingOpponent(self, x, y).isEmpty()))
                         valid_moves.setCell(x, y, 9);
 
         return valid_moves;
