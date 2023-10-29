@@ -14,13 +14,13 @@ public class Board {
         this.COL_COUNT = col_count;
         this.board = new int[][]{
             { 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 1, 0, 0, 0, 0, 0, 0, 0 },
-            { 2, 0, 0, 0, 0, 0, 0, 0 },
-            { 1, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 1, 2, 0, 0, 0 },
+            { 0, 0, 0, 2, 1, 0, 0, 0 },
             { 0, 0, 0, 0, 0, 0, 0, 0 },
             { 0, 0, 0, 0, 0, 0, 0, 0 },
             { 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 1, 2, 1, 0, 0, 0, 0, 0 },
         };
     }
 
@@ -61,7 +61,7 @@ public class Board {
                     temp.clear();
                 }
             }
-            else if(getCell(i, y) != GamePanel.Cell.EMPTY.getValue()) {
+            else if(getCell(i, y) != Cell.EMPTY.getValue()) {
                 encountered_opponent = true;
                 if(encountered_self)
                     temp.add(new Pair<>(i, y));
@@ -92,7 +92,7 @@ public class Board {
                     cells.addAll(temp);
                     temp.clear();
                 }
-            } else if (getCell(x, i) != GamePanel.Cell.EMPTY.getValue()) {
+            } else if (getCell(x, i) != Cell.EMPTY.getValue()) {
                 encountered_opponent = true;
                 if (encountered_self)
                     temp.add(new Pair<>(x, i));
@@ -111,35 +111,35 @@ public class Board {
     public boolean isAdjacentToOpponent(int self, int x, int y) {
         boolean is_adjacent = false;
         // up left
-        if(y - 1 >= 0 && x - 1 >= 0 && getCell(x - 1, y - 1) != self && getCell(x - 1, y - 1) != GamePanel.Cell.EMPTY.getValue())
+        if(y - 1 >= 0 && x - 1 >= 0 && getCell(x - 1, y - 1) != self && getCell(x - 1, y - 1) != Cell.EMPTY.getValue())
             is_adjacent = true;
 
         // up
-        if(y - 1 >= 0 && getCell(x, y - 1) != self && getCell(x, y - 1) != GamePanel.Cell.EMPTY.getValue())
+        if(y - 1 >= 0 && getCell(x, y - 1) != self && getCell(x, y - 1) != Cell.EMPTY.getValue())
             is_adjacent = true;
 
         // up right
-        if(y - 1 >= 0 && x + 1 < COL_COUNT && getCell(x + 1, y - 1) != self && getCell(x + 1, y - 1) != GamePanel.Cell.EMPTY.getValue())
+        if(y - 1 >= 0 && x + 1 < COL_COUNT && getCell(x + 1, y - 1) != self && getCell(x + 1, y - 1) != Cell.EMPTY.getValue())
             is_adjacent = true;
 
         // right
-        if(x + 1 < COL_COUNT && getCell(x + 1, y) != self && getCell(x + 1, y) != GamePanel.Cell.EMPTY.getValue())
+        if(x + 1 < COL_COUNT && getCell(x + 1, y) != self && getCell(x + 1, y) != Cell.EMPTY.getValue())
             is_adjacent = true;
 
         // right down
-        if(y + 1 < ROW_COUNT && x + 1 < COL_COUNT && getCell(x + 1, y + 1) != self && getCell(x + 1, y + 1) != GamePanel.Cell.EMPTY.getValue())
+        if(y + 1 < ROW_COUNT && x + 1 < COL_COUNT && getCell(x + 1, y + 1) != self && getCell(x + 1, y + 1) != Cell.EMPTY.getValue())
             is_adjacent = true;
 
         // down
-        if(y + 1 < ROW_COUNT && getCell(x, y + 1) != self && getCell(x, y + 1) != GamePanel.Cell.EMPTY.getValue())
+        if(y + 1 < ROW_COUNT && getCell(x, y + 1) != self && getCell(x, y + 1) != Cell.EMPTY.getValue())
             is_adjacent = true;
 
         // down left
-        if(y + 1 < ROW_COUNT && x - 1 >= 0 && getCell(x - 1, y + 1) != self && getCell(x - 1, y + 1) != GamePanel.Cell.EMPTY.getValue())
+        if(y + 1 < ROW_COUNT && x - 1 >= 0 && getCell(x - 1, y + 1) != self && getCell(x - 1, y + 1) != Cell.EMPTY.getValue())
             is_adjacent = true;
 
         // left
-        if(x - 1 >= 0 && getCell(x - 1, y) != self && getCell(x - 1, y) != GamePanel.Cell.EMPTY.getValue())
+        if(x - 1 >= 0 && getCell(x - 1, y) != self && getCell(x - 1, y) != Cell.EMPTY.getValue())
             is_adjacent = true;
 
         return is_adjacent;

@@ -6,8 +6,6 @@ import java.awt.Dimension;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Vector;
 
 public class GamePanel extends JPanel implements Runnable {
     public final int WIDTH = 400;
@@ -32,7 +30,7 @@ public class GamePanel extends JPanel implements Runnable {
         this.setBackground(Color.BLACK);
         this.setDoubleBuffered(true);
 
-        renderer = new Renderer(CELL_WIDTH, CELL_HEIGHT);
+        renderer = new Renderer(CELL_WIDTH, CELL_HEIGHT, this);
 
         board = new Board(
             ROW_COUNT,
@@ -50,8 +48,8 @@ public class GamePanel extends JPanel implements Runnable {
         );
 
         players = new LinkedList<>();
-        players.add(new Player(Cell.PLAYER1.value));
-        players.add(new Player(Cell.PLAYER2.value));
+        players.add(new Player(Cell.PLAYER1.getValue(), board));
+        players.add(new Player(Cell.PLAYER2.getValue(), board));
         players.get(0).turn = true;
 
         score = new ScoreBoard(board);
@@ -76,6 +74,7 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     public void update() {
+        // if no key pressed
         if(!input_handler.hasInput())
             return;
 
@@ -84,78 +83,33 @@ public class GamePanel extends JPanel implements Runnable {
         int x = pos.getKey();
         int y = pos.getValue();
 
-
-        if(board.getCell(x, y) != GamePanel.Cell.EMPTY.getValue())
+        if(board.getCell(x, y) != Cell.EMPTY.getValue())
             return;
 
-        if(is1stPlayerTurn())
-            handlePlayerTurn(Cell.PLAYER1.getValue(), x, y);
-        else
-            handlePlayerTurn(Cell.PLAYER2.getValue(), x, y);
-
+        boolean handled = players.getFirst().handle(x, y);
+        if(handled) {
+            changeTurns();
+            score.update();
+        }
         input_handler.inputHandled();
-        score.update();
         System.out.println(score.toString());
     }
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        Board valid_moves;
-        if(is1stPlayerTurn()) {
-            valid_moves = getValidMoves(board, Cell.PLAYER1.value);
-        } else {
-            valid_moves = getValidMoves(board, Cell.PLAYER2.value);
-        }
+        Board valid_moves = getValidMoves(board, players.getFirst().color);
 
-        renderer.drawBoard(g, board, valid_moves, is1stPlayerTurn());
+        renderer.drawBoard(g, board, valid_moves, players.getFirst().color);
         g.dispose();
-    }
-
-
-    public void handlePlayerTurn(int self, int x, int y) {
-        Vector<Pair<Integer, Integer>> enemy_cells;
-        // game logic. This whole method should probably NOT be in Player class
-        if(!board.isAdjacentToOpponent(self, x, y))
-            return;
-
-        enemy_cells = board.getCellsSurroundingOpponent(self, x, y);
-        if(enemy_cells.isEmpty()) {
-            System.out.println("EMPTY");
-            return;
-        }
-
-        // change opponents disks to your own. Board logic
-        for(Pair<Integer, Integer> p : enemy_cells)
-            board.setCell(p.getKey(), p.getValue(), self);
-        board.setCell(x, y, self);  // put disk on the selected cell
-
-        // its next players turn only after these previous checks
-        // game logic
-        changeTurns();
     }
 
     public boolean validMovesLeft() { return valid_moves_left; }
     public void setValidMovesLeft(boolean value) { valid_moves_left = value; }
     public boolean is1stPlayerTurn() { return player1_turn; }
     public void changeTurns() {
-        player1_turn = !player1_turn;
-    }
-
-    public enum Cell {
-        EMPTY(0),
-        PLAYER1(1),
-        PLAYER2(2);
-
-        private final int value;
-
-        Cell(int value) {
-            this.value = value;
-        }
-
-        public int getValue() {
-            return this.value;
-        }
+        // move the current player to the end of queue
+        players.addLast(players.pop());
     }
 
     public Board getValidMoves(Board board, int self) {

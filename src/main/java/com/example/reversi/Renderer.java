@@ -2,21 +2,28 @@ package com.example.reversi;
 
 import javafx.util.Pair;
 import java.awt.*;
+import java.util.Hashtable;
 
 public class Renderer {
     int CELL_WIDTH, CELL_HEIGHT;
+    GamePanel game;
 
-    public Renderer(int cell_width, int cell_height) {
+    Hashtable<Integer, Color> player_to_color, player_to_ghost_color;
+    public Renderer(int cell_width, int cell_height, GamePanel game) {
         this.CELL_WIDTH = cell_width;
         this.CELL_HEIGHT = cell_height;
+        this.game = game;
+
+        player_to_color = new Hashtable<>();
+        player_to_color.put(Cell.PLAYER1.getValue(), new Color(1.0f, 0.0f, 0.0f, 1.0f));
+        player_to_color.put(Cell.PLAYER2.getValue(), new Color(0.0f, 0.0f, 1.0f, 1.0f));
+
+        player_to_ghost_color = new Hashtable<>();
+        player_to_ghost_color.put(Cell.PLAYER1.getValue(), new Color(1.0f, 0.0f, 0.0f, 0.15f));
+        player_to_ghost_color.put(Cell.PLAYER2.getValue(), new Color(0.0f, 0.0f, 1.0f, 0.15f));
     }
 
-    public void drawBoard(Graphics g, Board board, Board valid_moves, boolean first_players_turn) {
-        // this depends on player's turn
-        Color ghost_color;
-        if(first_players_turn) ghost_color = new Color(1.0f, 0.0f, 0.0f, 0.15f);
-        else ghost_color = new Color(0.0f, 0.0f, 1.0f, 0.15f);
-
+    public void drawBoard(Graphics g, Board board, Board valid_moves, int player_color) {
         for(int x = 0; x < board.ROW_COUNT; x++)
         {
             for(int y = 0; y < board.COL_COUNT; y++)
@@ -27,15 +34,16 @@ public class Renderer {
                 g.fillRect(x * CELL_WIDTH, y * CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT);
 
                 if(valid_moves.getCell(x, y) == 9)
-                    g.setColor(ghost_color);
+                    g.setColor(player_to_ghost_color.get(player_color));
 
                 // draw disks
-                if(board.getCell(x, y) == GamePanel.Cell.PLAYER1.getValue()) {
-                    g.setColor(Color.RED);
+                for(Player p : game.players) {
+                    if(board.getCell(x, y) == p.color) {
+                        g.setColor(player_to_color.get(p.color));
+                        break;
+                    }
                 }
-                else if(board.getCell(x, y) == GamePanel.Cell.PLAYER2.getValue()) {
-                    g.setColor(Color.BLUE);
-                }
+
                 g.fillOval(x * CELL_WIDTH, y * CELL_HEIGHT, CELL_WIDTH, CELL_HEIGHT);
             }
         }

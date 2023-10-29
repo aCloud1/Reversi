@@ -10,8 +10,8 @@ public class ScoreBoard {
     }
 
     public void update() {
-        player1_score = board.calculatePlayerDisks(GamePanel.Cell.PLAYER1.getValue());
-        player2_score = board.calculatePlayerDisks(GamePanel.Cell.PLAYER2.getValue());
+        player1_score = board.calculatePlayerDisks(Cell.PLAYER1.getValue());
+        player2_score = board.calculatePlayerDisks(Cell.PLAYER2.getValue());
     }
 
     @Override

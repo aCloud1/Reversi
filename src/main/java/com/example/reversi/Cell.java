@@ -1,0 +1,17 @@
+package com.example.reversi;
+
+public enum Cell {
+    EMPTY(0),
+    PLAYER1(1),
+    PLAYER2(2);
+
+    private final int value;
+
+    Cell(int value) {
+        this.value = value;
+    }
+
+    public int getValue() {
+        return this.value;
+    }
+}
