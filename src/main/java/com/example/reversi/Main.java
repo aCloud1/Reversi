@@ -18,6 +18,6 @@ public class Main {
         window.setLocationRelativeTo(null);
         window.setVisible(true);
 
-        panel.startGameThread();
+        panel.start();
     }
 }
