@@ -9,16 +9,17 @@ public class InputHandler implements MouseListener {
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        x = e.getX();
-        y = e.getY();
+        x = e.getY();
+        y = e.getX();
         got_input = true;
     }
 
     public boolean hasInput() { return got_input; }
     public void inputHandled() { got_input = false; }
 
-    public int getX() { return x; }
-    public int getY() { return y; }
+    public Point getCoordinatesAsPoint() {
+        return new Point(x, y);
+    }
 
     @Override
     public void mousePressed(MouseEvent e) {}

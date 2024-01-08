@@ -2,323 +2,221 @@ package com.example.reversi;
 
 import javafx.util.Pair;
 
-import java.util.Vector;
+import java.util.ArrayList;
 
 public class Board {
     final int ROW_COUNT;
     final int COL_COUNT;
-    int[][] board;
+    private int[][] board;
+
+    public Board() {
+        this.ROW_COUNT = 8;
+        this.COL_COUNT = 8;
+        this.board = new int[][]{
+                {0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 1, 2, 0, 0, 0},
+                {0, 0, 0, 2, 1, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0},
+        };
+    }
 
     public Board(int row_count, int col_count) {
         this.ROW_COUNT = row_count;
         this.COL_COUNT = col_count;
-        this.board = new int[][]{
-            { 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 1, 2, 0, 0, 0 },
-            { 0, 0, 0, 2, 1, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 0, 0, 0, 0, 0, 0, 0, 0 },
-        };
+        this.board = new int[row_count][col_count];
     }
 
-    public Board(int row_count, int col_count, int[][] board) {
-        this.ROW_COUNT = row_count;
-        this.COL_COUNT = col_count;
+    public Board(int[][] board) {
+        this.ROW_COUNT = board.length;
+        int temp = 0;
+        if(board.length != 0)
+            temp = board[0].length;
+        this.COL_COUNT = temp;
         this.board = board;
     }
 
-    public int[][] getBoard() {
-        return board;
+    public int getCell(int x, int y) {
+        return board[x][y];
     }
 
-    public int getCell(int x, int y) { return board[y][x]; }
-    public void setCell(int x, int y, int value) { board[y][x] = value; }
+    public void setCell(int x, int y, int value) {
+        board[x][y] = value;
+    }
 
-    public Vector<Pair<Integer, Integer>> getCellsSurroundingOpponent(int self, int x, int y) {
-        Vector<Pair<Integer, Integer>> cells = new Vector<>();
+    public Pair<Integer, Integer> getDimensions() {
+        return new Pair<>(ROW_COUNT, COL_COUNT);
+    }
 
-        cells.addAll(checkHorizontal(self, x, y));
-        cells.addAll(checkVertical(self, x, y));
+    public ArrayList<Point> getCellsSurroundingOpponent(int self, Point p) {
+        ArrayList<Point> cells = new ArrayList<>();
+        int x = p.getX();
+        int y = p.getY();
 
-        // diagonal
-        cells.addAll(checkDiagonal(self, x, y));
+        cells.addAll(checkHorizontally(self, x, y));
+        cells.addAll(checkVertically(self, x, y));
+        cells.addAll(checkDiagonally(self, x, y));
 
         return cells;
     }
 
-    public Vector<Pair<Integer, Integer>> checkHorizontal(int self, int clicked_x, int clicked_y) {
-        Vector<Pair<Integer, Integer>> cells = new Vector<>();
-        Vector<Pair<Integer, Integer>> temp = new Vector<>();
-        int encountered_self = 0;
-        boolean encountered_opponent = false;
+    public ArrayList<Point> checkHorizontally(int self, int clicked_x, int clicked_y) {
+        ArrayList<Point> cells = new ArrayList<>();
+        ArrayList<Point> temp = new ArrayList<>();
 
-
-        for(int i = clicked_x; i >= 0; i--) {
-            if(encountered_self > 1)
+        for(int y = clicked_y + 1; y < COL_COUNT; y++)
+            if(handleStep(clicked_x, y, self, temp))
                 break;
-            else if(getCell(i, clicked_y) == self || i == clicked_x) {
-                encountered_self++;
-                if(encountered_opponent) {
-                    cells.addAll(temp);
-                    temp.clear();
-                }
-            }
-            else if(getCell(i, clicked_y) != Cell.EMPTY.getValue()) {
-                encountered_opponent = true;
-                temp.add(new Pair<>(i, clicked_y));
-            }
-            else break;
-        }
+        concat(cells, temp);
 
-        temp.clear();
-        encountered_self = 0;
-        encountered_opponent = false;
-
-        for(int i = clicked_x; i < ROW_COUNT; i++) {
-            if(encountered_self > 1)
+        for(int y = clicked_y - 1; y >= 0; y--)
+            if(handleStep(clicked_x, y, self, temp))
                 break;
-            else if(getCell(i, clicked_y) == self || i == clicked_x) {
-                encountered_self++;
-                if(encountered_opponent) {
-                    cells.addAll(temp);
-                    temp.clear();
-                }
-            }
-            else if(getCell(i, clicked_y) != Cell.EMPTY.getValue()) {
-                encountered_opponent = true;
-                temp.add(new Pair<>(i, clicked_y));
-            }
-            else break;
-        }
+        concat(cells, temp);
 
         return cells;
     }
 
-    public Vector<Pair<Integer, Integer>> checkVertical(int self, int clicked_x, int clicked_y) {
-        Vector<Pair<Integer, Integer>> cells = new Vector<>();
-        Vector<Pair<Integer, Integer>> temp = new Vector<>();
-        int encountered_self = 0;
-        boolean encountered_opponent = false;
+    public ArrayList<Point> checkVertically(int self, int clicked_x, int clicked_y) {
+        ArrayList<Point> cells = new ArrayList<>();
+        ArrayList<Point> temp = new ArrayList<>();
 
-
-        for(int i = clicked_y; i >= 0; i--) {
-            if(encountered_self > 1)
+        for (int x = clicked_x + 1; x < ROW_COUNT; x++)
+            if(handleStep(x, clicked_y, self, temp))
                 break;
-            else if(getCell(clicked_x, i) == self || i == clicked_y) {
-                encountered_self++;
-                if(encountered_opponent) {
-                    cells.addAll(temp);
-                    temp.clear();
-                }
-            }
-            else if(getCell(clicked_x, i) != Cell.EMPTY.getValue()) {
-                encountered_opponent = true;
-                temp.add(new Pair<>(clicked_x, i));
-            }
-            else break;
-        }
+        concat(cells, temp);
 
-        temp.clear();
-        encountered_self = 0;
-        encountered_opponent = false;
-
-        for(int i = clicked_y; i < ROW_COUNT; i++) {
-            if(encountered_self > 1)
+        for (int x = clicked_x - 1; x >= 0; x--)
+            if(handleStep(x, clicked_y, self, temp))
                 break;
-            else if(getCell(clicked_x, i) == self || i == clicked_y) {
-                encountered_self++;
-                if(encountered_opponent) {
-                    cells.addAll(temp);
-                    temp.clear();
-                }
-            }
-            else if(getCell(clicked_x, i) != Cell.EMPTY.getValue()) {
-                encountered_opponent = true;
-                temp.add(new Pair<>(clicked_x, i));
-            }
-            else break;
-        }
+        concat(cells, temp);
 
         return cells;
     }
 
-    public Vector<Pair<Integer, Integer>> checkDiagonal(int self, int clicked_x, int clicked_y) {
-        Vector<Pair<Integer, Integer>> cells = new Vector<>();
-        Vector<Pair<Integer, Integer>> temp = new Vector<>();
-        int encountered_self = 0;
-        boolean encountered_opponent = false;
-        int i, j;
+    public ArrayList<Point> checkDiagonally(int self, int clicked_x, int clicked_y) {
+        ArrayList<Point> cells = new ArrayList<>();
+        ArrayList<Point> temp = new ArrayList<>();
 
-
-        //region left up
-        i = clicked_x;
-        j = clicked_y;
-        while(i >= 0 && j >= 0) {
-            if(encountered_self > 1)
+        for(int i = clicked_x - 1, j = clicked_y - 1; i >= 0 && j >= 0; i--, j--)
+            if(handleStep(i, j, self, temp))
                 break;
-            else if(getCell(i, j) == self || (i == clicked_x && j == clicked_y)) {  // the clicked check here is probably not needed, because we will never come back to this cell. DONT DELETE WITHOUT CHECKING FIRST
-                encountered_self++;
-                if(encountered_opponent) {
-                    cells.addAll(temp);
-                    temp.clear();
-                }
-                i--;
-                j--;
-            }
-            else if(getCell(i, j) != Cell.EMPTY.getValue()) {
-                encountered_opponent = true;
-                temp.add(new Pair<>(i, j));
-                i--;
-                j--;
-            }
-            else break;
-        }
-        //endregion
+        concat(cells, temp);
 
-        //region right down
-        temp.clear();
-        encountered_self = 0;
-        encountered_opponent = false;
-        i = clicked_x;
-        j = clicked_y;
-        while(i < COL_COUNT && j < ROW_COUNT) {
-            if(encountered_self > 1)
+        for(int i = clicked_x + 1, j = clicked_y + 1; i < ROW_COUNT && j < COL_COUNT; i++, j++)
+            if(handleStep(i, j, self, temp))
                 break;
-            else if(getCell(i, j) == self || (i == clicked_x && j == clicked_y)) {
-                encountered_self++;
-                if(encountered_opponent) {
-                    cells.addAll(temp);
-                    temp.clear();
-                }
-                i++;
-                j++;
-            }
-            else if(getCell(i, j) != Cell.EMPTY.getValue()) {
-                encountered_opponent = true;
-                temp.add(new Pair<>(i, j));
-                i++;
-                j++;
-            }
-            else break;
-        }
-        //endregion
+        concat(cells, temp);
 
-        //region left down
-        temp.clear();
-        encountered_self = 0;
-        encountered_opponent = false;
-        i = clicked_x;
-        j = clicked_y;
-        while(i >= 0 && j < ROW_COUNT) {
-            if(encountered_self > 1)
-                break;
-            else if(getCell(i, j) == self || (i == clicked_x && j == clicked_y)) {
-                encountered_self++;
-                if(encountered_opponent) {
-                    cells.addAll(temp);
-                    temp.clear();
-                }
-                i--;
-                j++;
-            }
-            else if(getCell(i, j) != Cell.EMPTY.getValue()) {
-                encountered_opponent = true;
-                temp.add(new Pair<>(i, j));
-                i--;
-                j++;
-            }
-            else break;
-        }
-        //endregion
 
-        //region right up
-        temp.clear();
-        encountered_self = 0;
-        encountered_opponent = false;
-        i = clicked_x;
-        j = clicked_y;
-        while(i < COL_COUNT && j >= 0) {
-            if(encountered_self > 1)
+        for(int i = clicked_x - 1, j = clicked_y + 1; i >= 0 && j < COL_COUNT; i--, j++)
+            if(handleStep(i, j, self, temp))
                 break;
-            else if(getCell(i, j) == self || (i == clicked_x && j == clicked_y)) {
-                encountered_self++;
-                if(encountered_opponent) {
-                    cells.addAll(temp);
-                    temp.clear();
-                }
-                i++;
-                j--;
-            }
-            else if(getCell(i, j) != Cell.EMPTY.getValue()) {
-                encountered_opponent = true;
-                temp.add(new Pair<>(i, j));
-                i++;
-                j--;
-            }
-            else break;
-        }
-        //endregion
+        concat(cells, temp);
+
+        for(int i = clicked_x + 1, j = clicked_y - 1; i < ROW_COUNT && j >= 0; i++, j--)
+            if(handleStep(i, j, self, temp))
+                break;
+        concat(cells, temp);
 
         return cells;
     }
 
-    public Board getValidMoves(int player) {
+    private void concat(ArrayList<Point> cells, ArrayList<Point> temp) {
+        cells.addAll(temp);
+        temp.clear();
+    }
+
+    private boolean handleStep(int x, int y, int self, ArrayList<Point> cells) {
+        int cell_value = getCell(x, y);
+        if(cell_value == Cell.EMPTY.getValue()) {
+            cells.clear();
+            return true;
+        }
+        else if(cell_value == self) {
+            return true;
+        }
+        else {
+            cells.add(new Point(x, y));
+            return false;
+        }
+    }
+
+    public Board getValidMoves(int player_id) {
         Board valid_moves = new Board(ROW_COUNT, COL_COUNT);
-
-        for(int x = 0; x < ROW_COUNT; x++)
-            for(int y = 0; y < COL_COUNT; y++)
-                if(isAdjacentToOpponent(player, x, y))
-                    if(!(getCellsSurroundingOpponent(player, x, y).isEmpty()))
-                        valid_moves.setCell(x, y, 9);
+        for (int x = 0; x < ROW_COUNT; x++)
+            for (int y = 0; y < COL_COUNT; y++)
+                if (isMoveValid(x, y, player_id))
+                    valid_moves.setCell(x, y, 9);
 
         return valid_moves;
     }
 
-    public boolean isAdjacentToOpponent(int self, int x, int y) {
-        boolean is_adjacent = false;
-        // up left
-        if(y - 1 >= 0 && x - 1 >= 0 && getCell(x - 1, y - 1) != self && getCell(x - 1, y - 1) != Cell.EMPTY.getValue())
-            is_adjacent = true;
+    public boolean isMoveValid(int x, int y, int player_id) {
+        if (getCell(x, y) != Cell.EMPTY.getValue())
+            return false;
 
-        // up
-        if(y - 1 >= 0 && getCell(x, y - 1) != self && getCell(x, y - 1) != Cell.EMPTY.getValue())
-            is_adjacent = true;
+        Point point = new Point(x, y);
+        if (!isAdjacentToOpponent(player_id, point))
+            return false;
 
-        // up right
-        if(y - 1 >= 0 && x + 1 < COL_COUNT && getCell(x + 1, y - 1) != self && getCell(x + 1, y - 1) != Cell.EMPTY.getValue())
-            is_adjacent = true;
+        if (getCellsSurroundingOpponent(player_id, point).isEmpty())
+            return false;
 
-        // right
-        if(x + 1 < COL_COUNT && getCell(x + 1, y) != self && getCell(x + 1, y) != Cell.EMPTY.getValue())
-            is_adjacent = true;
+        return true;
+    }
 
-        // right down
-        if(y + 1 < ROW_COUNT && x + 1 < COL_COUNT && getCell(x + 1, y + 1) != self && getCell(x + 1, y + 1) != Cell.EMPTY.getValue())
-            is_adjacent = true;
+    public boolean isAdjacentToOpponent(int self, Point point) {
+        ArrayList<Point> adjacent_cell_coords = getAdjacentCells(point);
+        for (Point p : adjacent_cell_coords)
+            if (coordinateExists(p) && isCoordinateValid(p, self))
+                return true;
 
-        // down
-        if(y + 1 < ROW_COUNT && getCell(x, y + 1) != self && getCell(x, y + 1) != Cell.EMPTY.getValue())
-            is_adjacent = true;
+        return false;
+    }
 
-        // down left
-        if(y + 1 < ROW_COUNT && x - 1 >= 0 && getCell(x - 1, y + 1) != self && getCell(x - 1, y + 1) != Cell.EMPTY.getValue())
-            is_adjacent = true;
+    private ArrayList<Point> getAdjacentCells(Point p) {
+        ArrayList<Point> adjacent_cells = new ArrayList<>();
+        int x = p.getX();
+        int y = p.getY();
 
-        // left
-        if(x - 1 >= 0 && getCell(x - 1, y) != self && getCell(x - 1, y) != Cell.EMPTY.getValue())
-            is_adjacent = true;
+        adjacent_cells.add(new Point(x - 1, y - 1));
+        adjacent_cells.add(new Point(x, y - 1));
+        adjacent_cells.add(new Point(x + 1, y - 1));
 
-        return is_adjacent;
+        adjacent_cells.add(new Point(x - 1, y));
+        adjacent_cells.add(new Point(x + 1, y));
+
+        adjacent_cells.add(new Point(x - 1, y + 1));
+        adjacent_cells.add(new Point(x, y + 1));
+        adjacent_cells.add(new Point(x + 1, y + 1));
+
+        return adjacent_cells;
+    }
+
+    private boolean coordinateExists(Point p) {
+        if (p.getX() < 0 || p.getX() >= ROW_COUNT)
+            return false;
+
+        if (p.getY() < 0 || p.getY() >= COL_COUNT)
+            return false;
+
+        return true;
+    }
+
+    private boolean isCoordinateValid(Point p, int self) {
+        int value = getCell(p.getX(), p.getY());
+        return value != self && value != Cell.EMPTY.getValue();
     }
 
     public int calculatePlayerDisks(int player) {
         int score = 0;
-        for(int x = 0; x < ROW_COUNT; x++)
-            for(int y = 0; y < COL_COUNT; y++)
-                if(getCell(x, y) == player)
+        for (int x = 0; x < ROW_COUNT; x++)
+            for (int y = 0; y < COL_COUNT; y++)
+                if (getCell(x, y) == player)
                     score++;
 
         return score;
@@ -326,20 +224,29 @@ public class Board {
 
     public boolean validMovesExist(int player) {
         Board b = getValidMoves(player);
-
-        for(int x = 0; x < ROW_COUNT; x++)
-            for(int y = 0; y < COL_COUNT; y++)
-                if(b.getCell(x, y) == 9)
+        for (int x = 0; x < ROW_COUNT; x++)
+            for (int y = 0; y < COL_COUNT; y++)
+                if (b.getCell(x, y) == 9)
                     return true;
 
         return false;
     }
 
     public boolean noEmptyCellsLeft() {
-        for(int x = 0; x < ROW_COUNT; x++)
-            for(int y = 0; y < COL_COUNT; y++)
-                if(getCell(x, y) == Cell.EMPTY.getValue())
+        for (int x = 0; x < ROW_COUNT; x++)
+            for (int y = 0; y < COL_COUNT; y++)
+                if (cellIsEmpty(x, y))
                     return false;
+
         return true;
+    }
+
+    private boolean cellIsEmpty(int x, int y) {
+        return getCell(x, y) == Cell.EMPTY.getValue();
+    }
+
+    public void changeCellsTo(int disk_type, ArrayList<Point> coords) {
+        for (Point p : coords)
+            setCell(p.getX(), p.getY(), disk_type);
     }
 }
